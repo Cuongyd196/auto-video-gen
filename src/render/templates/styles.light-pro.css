@@ -1,0 +1,607 @@
+/* ============================================================
+   LIGHT-PRO VISUAL SYSTEM — Vietnamese News Short Video 9:16 (1080×1920)
+   White + Slate + Indigo/Blue palette — clean, corporate, "SaaS landing
+   page" look. Same DOM/class contract as the dark-neon theme (styles.css)
+   so html-composer.ts and animations.js work unchanged against either file.
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 1080px; height: 1920px; overflow: hidden; background: #f8fafc;
+  font-family: 'Inter', 'Noto Sans', sans-serif;
+}
+
+#stage { position: relative; width: 1080px; height: 1920px; }
+
+/* Default invisible — GSAP timeline sets opacity:1 at scene start, opacity:0 at end. */
+.scene { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; }
+
+/* ── PERSISTENT SHELL BACKGROUND ───────────────────────────── */
+.shell-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background: linear-gradient(180deg, #ffffff 0%, #eef2f8 55%, #e6ecf6 100%);
+}
+
+/* ── GRAIN OVERLAY ─────────────────────────────────────────────
+   Kept extremely subtle on the light theme — heavy grain reads as
+   "gritty/cinematic", which fights the clean corporate look. */
+@keyframes hf-grain-noise {
+  0%,100% { transform: translate(0,0); }
+  10%  { transform: translate(-5%,-5%); }
+  20%  { transform: translate(-10%,5%); }
+  30%  { transform: translate(5%,-10%); }
+  40%  { transform: translate(-5%,15%); }
+  50%  { transform: translate(-10%,5%); }
+  60%  { transform: translate(15%,0); }
+  70%  { transform: translate(0,10%); }
+  80%  { transform: translate(-15%,0); }
+  90%  { transform: translate(10%,5%); }
+}
+
+#grain-overlay .grain-texture {
+  position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  background-repeat: repeat;
+  opacity: 0.035;
+  animation: hf-grain-noise 0.5s steps(1) infinite;
+}
+
+/* ── BRAND SHELL HEADER (top-left persistent) ─────────────────
+   top offset cleared to sit below the phone status bar + the
+   host app's own top UI (TikTok/FB back/search/menu icons). */
+.brand-shell-header {
+  position: absolute; top: 140px; left: 60px;
+  display: flex; align-items: center; gap: 28px;
+  z-index: 50;
+}
+
+.brand-icon {
+  width: 90px; height: 90px;
+  background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Courier New', monospace;
+  font-size: 32px; font-weight: 700; color: #fff;
+  letter-spacing: -0.05em;
+  box-shadow: 0 8px 24px rgba(37,99,235,0.35);
+  flex-shrink: 0;
+}
+
+.brand-text {
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+.brand-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 40px; font-weight: 800; color: #0f172a;
+  line-height: 1.1; letter-spacing: -0.01em;
+}
+
+.brand-tag {
+  font-family: 'Inter', sans-serif;
+  font-size: 24px; font-weight: 600;
+  color: #2563eb;
+  letter-spacing: 4px; text-transform: uppercase;
+}
+
+/* ── BRAND SHELL FOOTER HANDLE (bottom-right) ───────────────── */
+.brand-shell-handle {
+  position: absolute; bottom: 200px; right: 60px;
+  display: flex; align-items: center; gap: 14px;
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(15,23,42,0.08);
+  box-shadow: 0 8px 24px rgba(15,23,42,0.06);
+  border-radius: 50px;
+  padding: 16px 32px;
+  z-index: 50;
+}
+
+.handle-music {
+  font-size: 30px; color: #0f172a;
+}
+
+.handle-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 30px; font-weight: 600; color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+/* ── BRAND SHELL KEYWORD PILL (bottom-center) ───────────────── */
+.brand-shell-keyword {
+  position: absolute; bottom: 130px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(37,99,235,0.08);
+  border: 1px solid rgba(37,99,235,0.35);
+  border-radius: 50px;
+  padding: 12px 36px;
+  z-index: 50;
+}
+
+.brand-shell-keyword span {
+  font-family: 'Inter', sans-serif;
+  font-size: 26px; font-weight: 600;
+  color: #2563eb; letter-spacing: 2px;
+}
+
+/* ── BACKGROUND PRIMITIVES ─────────────────────────────────── */
+.bg { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 1; }
+
+/* Ken Burns */
+.bg.kb-zoom-in    { animation: kb-zoom-in    var(--scene-dur) linear forwards; }
+.bg.kb-zoom-out   { animation: kb-zoom-out   var(--scene-dur) linear forwards; }
+.bg.kb-pan-left   { animation: kb-pan-left   var(--scene-dur) linear forwards; }
+.bg.kb-pan-right  { animation: kb-pan-right  var(--scene-dur) linear forwards; }
+
+@keyframes kb-zoom-in   { from { transform: scale(1.0); } to { transform: scale(1.18); } }
+@keyframes kb-zoom-out  { from { transform: scale(1.18); } to { transform: scale(1.0); } }
+@keyframes kb-pan-left  { from { transform: scale(1.15) translateX(4%); } to { transform: scale(1.15) translateX(-4%); } }
+@keyframes kb-pan-right { from { transform: scale(1.15) translateX(-4%); } to { transform: scale(1.15) translateX(4%); } }
+
+/* Gradient backgrounds — same class names as dark-neon (html-composer.ts
+   emits these literally) but recolored to a clean off-white gradient with
+   faint pastel glow blobs instead of neon orbs on navy. */
+.bg.gradient-news-dark {
+  background: linear-gradient(160deg, #ffffff 0%, #f3f6fb 35%, #eaf0f9 65%, #e1e9f5 100%);
+  overflow: hidden;
+}
+.bg.gradient-outro-purple {
+  background: linear-gradient(160deg, #eef2ff 0%, #e0e7ff 30%, #e0f2fe 70%, #ffffff 100%);
+  overflow: hidden;
+}
+
+.bg.gradient-news-dark::before,
+.bg.gradient-outro-purple::before {
+  content: ""; position: absolute; border-radius: 50%;
+  width: 820px; height: 820px; top: -240px; left: -180px;
+  background: radial-gradient(circle, rgba(99,102,241,0.16) 0%, transparent 70%);
+  filter: blur(120px);
+  mix-blend-mode: multiply;
+  animation: orb-drift-a 24s ease-in-out infinite alternate;
+}
+
+.bg.gradient-news-dark::after,
+.bg.gradient-outro-purple::after {
+  content: ""; position: absolute; border-radius: 50%;
+  width: 760px; height: 760px; bottom: -220px; right: -160px;
+  background: radial-gradient(circle, rgba(14,165,233,0.14) 0%, transparent 70%);
+  filter: blur(120px);
+  mix-blend-mode: multiply;
+  animation: orb-drift-b 28s ease-in-out infinite alternate;
+}
+
+@keyframes orb-drift-a {
+  from { transform: translate(0,0) scale(1); }
+  to   { transform: translate(50px,70px) scale(1.12); }
+}
+@keyframes orb-drift-b {
+  from { transform: translate(0,0) scale(1); }
+  to   { transform: translate(-40px,-60px) scale(1.08); }
+}
+
+/* Overlay (hook image darkening) — unchanged; only relevant when a scene
+   actually has a source image. */
+.overlay { position: absolute; inset: 0; background: #000; z-index: 2; }
+
+/* ── SHIMMER SWEEP ────────────────────────────────────────────
+   Default sheen recolored to a blue tint — a white sheen would be
+   invisible sweeping across white cards. */
+.shimmer-sweep-target {
+  position: relative;
+  display: inline-block;
+}
+
+.shimmer-sweep-target .shimmer-mask {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  background: linear-gradient(
+    var(--shimmer-angle, 120deg),
+    transparent 0%,
+    transparent calc(var(--shimmer-pos, -20%) - var(--shimmer-width, 20%) / 2),
+    var(--shimmer-color, rgba(37,99,235,0.30)) var(--shimmer-pos, -20%),
+    transparent calc(var(--shimmer-pos, -20%) + var(--shimmer-width, 20%) / 2),
+    transparent 100%
+  );
+  mix-blend-mode: multiply;
+}
+
+/* ── CARD GLASS MIXIN ────────────────────────────────────────── */
+.glass-card {
+  background: rgba(255,255,255,0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 24px;
+}
+
+/* ── VIGNETTE ─────────────────────────────────────────────────
+   Barely-there edge darkening — just enough to ground cards on
+   white without muddying the clean background. */
+.vignette {
+  position: absolute; inset: 0; z-index: 40; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(15,23,42,0.05) 100%);
+}
+
+/* ── LAYOUT: HOOK ────────────────────────────────────────────── */
+.layout-hook {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  /* Side padding widened symmetrically to 190px — TikTok/FB overlay their
+     own right-side rail (sound disc, like/comment/share icons) over
+     roughly the last ~18% of the frame, so the hook card's solid white
+     edge needs that much clearance. Kept symmetric (not just widened on
+     the right) so the card stays centered instead of looking off-balance. */
+  padding: 200px 190px 300px;
+  text-align: center;
+}
+
+.layout-hook::before {
+  content: ""; position: absolute; z-index: -1;
+  left: 50%; top: 50%; width: 940px; height: 940px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(37,99,235,0.20) 0%, transparent 65%);
+  filter: blur(90px);
+  pointer-events: none;
+}
+
+/* Headline sits on its own elevated white panel — on a soft near-white
+   gradient background, bare dark text has too little separation from the
+   page; a bounded card gives it a clear edge (same "card on canvas"
+   language as the feature-list/callout/stat-hero templates). */
+.hook-headline {
+  font-family: 'Inter', sans-serif;
+  font-size: 140px; font-weight: 900;
+  color: #0f172a; line-height: 1.05;
+  text-align: center; letter-spacing: -0.03em;
+  display: block; width: 100%;
+  background: rgba(255,255,255,0.94);
+  border: 2px solid rgba(37,99,235,0.16);
+  border-radius: 40px;
+  padding: 48px 56px;
+  box-shadow: 0 32px 70px rgba(15,23,42,0.14), inset 0 1px 0 rgba(255,255,255,0.8);
+  opacity: 0;
+}
+
+.hook-subhead {
+  font-family: 'Inter', sans-serif;
+  font-size: 68px; font-weight: 800;
+  color: #2563eb; line-height: 1.1;
+  text-align: center;
+  display: inline-block;
+  background: rgba(37,99,235,0.10);
+  border: 1px solid rgba(37,99,235,0.35);
+  border-radius: 50px;
+  padding: 22px 52px;
+  box-shadow: 0 16px 32px rgba(37,99,235,0.14);
+  margin-top: 44px;
+  opacity: 0;
+}
+
+/* ── LAYOUT: COMPARISON ──────────────────────────────────────── */
+.layout-comparison {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 220px 80px 300px;
+  gap: 0;
+}
+
+.cmp-card {
+  width: 100%;
+  background: rgba(255,255,255,0.92);
+  border-radius: 24px;
+  padding: 60px 70px;
+  display: flex; flex-direction: column;
+  align-items: flex-start; gap: 20px;
+  opacity: 0;
+}
+
+.cmp-card.color-cyan   { border: 2px solid #0ea5e9; box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 20px 40px rgba(15,23,42,0.08), 0 0 0 rgba(0,0,0,0); }
+.cmp-card.color-purple { border: 2px solid #4f46e5; box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 20px 40px rgba(15,23,42,0.08), 0 0 0 rgba(0,0,0,0); }
+.cmp-card.card-winner  { border-width: 3px; }
+
+.cmp-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 40px; font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase; letter-spacing: 3px;
+}
+
+.cmp-value {
+  font-family: 'Inter', sans-serif;
+  font-size: 108px; font-weight: 900;
+  color: #0f172a; line-height: 1.0;
+  letter-spacing: -0.03em;
+}
+
+.cmp-card.color-cyan   .cmp-value { color: #0284c7; }
+.cmp-card.color-purple .cmp-value { color: #4338ca; }
+
+.cmp-winner-badge {
+  font-family: 'Inter', sans-serif;
+  font-size: 28px; font-weight: 700;
+  color: #0f172a;
+  background: rgba(37,99,235,0.10);
+  border: 1px solid rgba(37,99,235,0.35);
+  border-radius: 50px;
+  padding: 8px 24px;
+  letter-spacing: 3px; text-transform: uppercase;
+}
+
+.cmp-vs {
+  font-family: 'Inter', sans-serif;
+  font-size: 76px; font-weight: 900;
+  color: rgba(15,23,42,0.22);
+  text-align: center; line-height: 1;
+  margin: 32px 0;
+  opacity: 0;
+}
+
+/* ── LAYOUT: STAT HERO ───────────────────────────────────────── */
+.layout-stat-hero {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 220px 80px 300px;
+  text-align: center; gap: 24px;
+}
+
+.layout-stat-hero::before {
+  content: ""; position: absolute; z-index: -1;
+  left: 50%; top: 42%; width: 820px; height: 820px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(37,99,235,0.14) 0%, transparent 65%);
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.stat-value {
+  font-family: 'Inter', sans-serif;
+  font-size: 212px; font-weight: 900;
+  color: #2563eb; line-height: 1.0;
+  letter-spacing: -0.03em;
+  text-shadow: 0 0 40px rgba(37,99,235,0.18);
+  display: block;
+  opacity: 0;
+}
+
+.stat-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 64px; font-weight: 700;
+  color: #0f172a; line-height: 1.2;
+  text-align: center;
+  opacity: 0;
+}
+
+.stat-context {
+  font-family: 'Inter', sans-serif;
+  font-size: 44px; font-weight: 500;
+  color: #64748b;
+  text-align: center;
+  border: 1px solid rgba(15,23,42,0.12);
+  border-radius: 50px;
+  padding: 16px 48px;
+  opacity: 0;
+}
+
+/* ── LAYOUT: FEATURE LIST ────────────────────────────────────── */
+.layout-feature-list {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: center;
+  padding: 220px 80px 300px;
+}
+
+.feat-card {
+  width: 100%;
+  border-radius: 24px;
+  padding: 72px 80px;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(135deg, #4f46e5 0%, #2563eb 50%, #0ea5e9 100%) border-box;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 24px 48px rgba(15,23,42,0.10);
+  opacity: 0;
+}
+
+.feat-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 60px; font-weight: 800;
+  color: #4338ca; line-height: 1.2;
+  margin-bottom: 0;
+}
+
+.feat-rule {
+  height: 3px;
+  background: linear-gradient(90deg, #4f46e5, transparent);
+  margin: 40px 0;
+  transform-origin: left center;
+  opacity: 0;
+}
+
+.feat-bullets {
+  display: flex; flex-direction: column; gap: 36px;
+}
+
+.feat-bullet {
+  display: flex; align-items: center; gap: 32px;
+  opacity: 0;
+}
+
+.feat-dot {
+  width: 20px; height: 20px; flex-shrink: 0;
+  background: #2563eb;
+  border-radius: 50%;
+  box-shadow: 0 0 0 6px rgba(37,99,235,0.12);
+}
+
+.feat-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 50px; font-weight: 500;
+  color: #1e293b; line-height: 1.3;
+}
+
+/* ── LAYOUT: CALLOUT ─────────────────────────────────────────── */
+.layout-callout {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: center;
+  padding: 220px 80px 300px;
+}
+
+.callout-card {
+  width: 100%;
+  border-radius: 24px;
+  padding: 80px;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(135deg, #0ea5e9 0%, #2563eb 50%, #4f46e5 100%) border-box;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 24px 48px rgba(15,23,42,0.10);
+  text-align: center;
+  opacity: 0;
+}
+
+.callout-tag {
+  display: inline-block;
+  font-family: 'Inter', sans-serif;
+  font-size: 32px; font-weight: 700;
+  color: #2563eb;
+  background: rgba(37,99,235,0.08);
+  border: 1px solid rgba(37,99,235,0.35);
+  border-radius: 50px;
+  padding: 12px 36px;
+  letter-spacing: 3px; text-transform: uppercase;
+  margin-bottom: 48px;
+}
+
+.callout-statement {
+  font-family: 'Inter', sans-serif;
+  font-size: 64px; font-weight: 600;
+  color: #0f172a; line-height: 1.35;
+}
+
+/* ── LAYOUT: OUTRO ───────────────────────────────────────────── */
+.layout-outro {
+  position: absolute; inset: 0; z-index: 5;
+  background: linear-gradient(180deg, rgba(224,231,255,0.9) 0%, rgba(255,255,255,0.95) 100%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 220px 80px 300px;
+  gap: 0;
+  text-align: center;
+}
+
+.out-cta-top {
+  font-family: 'Inter', sans-serif;
+  font-size: 52px; font-weight: 700; color: #0f172a;
+  border: 3px solid rgba(15,23,42,0.5);
+  padding: 20px 56px; border-radius: 50px;
+  letter-spacing: 0.05em; margin-bottom: 80px;
+  opacity: 0;
+}
+
+.out-channel {
+  font-family: 'Inter', sans-serif;
+  font-size: 116px; font-weight: 900;
+  color: #0f172a; text-align: center;
+  line-height: 1.0; letter-spacing: -0.03em;
+  text-shadow: 0 0 32px rgba(37,99,235,0.20);
+  opacity: 0;
+}
+
+.out-underline {
+  height: 4px;
+  background: linear-gradient(90deg, #4f46e5, #0ea5e9);
+  width: 0; margin: 40px auto;
+  border-radius: 4px;
+}
+
+.out-source {
+  font-family: 'Inter', sans-serif;
+  font-size: 44px; font-weight: 500;
+  color: #64748b; text-align: center;
+  margin-top: 40px;
+  opacity: 0;
+}
+
+/* ── FX OVERLAYS ────────────────────────────────────────────── */
+/* flash-white-3f recolored: a literal white flash is invisible against
+   a white background, so it flashes a soft brand-blue tint instead. */
+.fx { position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 10; }
+.fx.flash-white-3f     { background: rgba(37,99,235,0.22); }
+.fx.particle-burst     { background: radial-gradient(circle at center, rgba(14,165,233,0.35) 0%, transparent 60%); }
+.fx.color-flash-accent { background: rgba(79,70,229,0.18); }
+
+/* ── TIKTOK FOLLOW CARD (outro overlay) ──────────────────────────────────
+   Deliberately UNCHANGED from the dark-neon theme: this replicates the
+   real TikTok app's own dark follow-card chrome, which stays dark
+   regardless of the video's own color theme. */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=block');
+
+.tt-card {
+  position: absolute;
+  bottom: 360px;
+  left: 50%;
+  transform: translate(-50%, 300px);
+  display: flex; align-items: center; gap: 30px;
+  background: #1a1a1a;
+  border-radius: 75px;
+  padding: 25px 40px 25px 25px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.35), 0 0 60px rgba(254,44,85,0.12);
+  font-family: 'DM Sans', sans-serif;
+  opacity: 0;
+  z-index: 60;
+}
+
+.tt-avatar {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 3px solid #333;
+}
+
+.tt-profile-info {
+  display: flex; flex-direction: column; gap: 2px;
+  margin-right: 20px;
+}
+
+.tt-display-name {
+  font-size: 42px; font-weight: 700; color: #ffffff;
+  line-height: 1.3; letter-spacing: -0.01em;
+}
+.tt-handle {
+  font-size: 28px; font-weight: 400; color: #a0a0a0;
+  line-height: 1.3;
+}
+.tt-followers {
+  font-size: 25px; font-weight: 400; color: #737373;
+  line-height: 1.3;
+}
+
+.tt-follow-btn {
+  position: relative;
+  width: 250px; height: 80px;
+  border-radius: 40px;
+  background: #fe2c55;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+
+.tt-btn-text {
+  position: absolute;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 30px; font-weight: 700; color: #ffffff;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.tt-btn-text-following {
+  opacity: 0;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.tt-check-icon { display: inline-block; width: 22px; height: 22px; }
+.tt-check-icon svg { width: 22px; height: 22px; display: block; }

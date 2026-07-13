@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080, height=1920">
+  <title>{{TITLE}}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Anton&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="stage"
+       data-composition-id="news-video"
+       data-width="1080"
+       data-height="1920"
+       data-start="0"
+       data-duration="{{TOTAL_DURATION}}">
+
+    {{SHELL}}
+
+    <audio id="voice"
+           class="clip"
+           data-start="0"
+           data-duration="{{TOTAL_DURATION}}"
+           data-track-index="0"
+           src="voice.mp3"></audio>
+
+    {{SCENES}}
+  </div>
+  <script src="animations.js"></script>
+</body>
+</html>

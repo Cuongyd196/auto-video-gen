@@ -1,0 +1,79 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "title": "Apple ra mắt iPhone 17 với camera 200MP",
+    "source": {
+      "url": "https://vnexpress.net/iphone-17-200mp",
+      "domain": "vnexpress.net",
+      "image": "https://i1-vnexpress.vnecdn.net/iphone17.jpg"
+    },
+    "channel": "Công nghệ 24h"
+  },
+  "voice": {
+    "provider": "lucylab",
+    "voiceId": "${VIETNAMESE_VOICEID}",
+    "speed": 1
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "voiceText": "Apple vừa ra mắt iPhone 17.",
+      "templateData": { "template": "hook", "headline": "iPhone 17", "subhead": "Camera 200MP!" }
+    },
+    {
+      "id": "body-1",
+      "type": "body",
+      "voiceText": "Cảm biến mới zoom 10x.",
+      "templateData": { "template": "stat-hero", "value": "200MP", "label": "Cảm biến mới" }
+    },
+    {
+      "id": "body-2",
+      "type": "body",
+      "voiceText": "Pin 5000mAh.",
+      "templateData": { "template": "feature-list", "title": "Pin", "bullets": ["5000mAh"] }
+    },
+    {
+      "id": "body-3",
+      "type": "body",
+      "voiceText": "Giá từ 21 triệu.",
+      "templateData": { "template": "callout", "statement": "Giá từ 21 triệu đồng." }
+    },
+    {
+      "id": "body-4",
+      "type": "body",
+      "voiceText": "Màn hình OLED.",
+      "templateData": { "template": "comparison", "left": { "label": "iPhone 17", "value": "OLED", "color": "cyan" }, "right": { "label": "Android", "value": "LCD", "color": "purple", "winner": false } }
+    },
+    {
+      "id": "body-5",
+      "type": "body",
+      "voiceText": "Camera trước 12MP.",
+      "templateData": { "template": "stat-hero", "value": "12MP", "label": "Camera trước" }
+    },
+    {
+      "id": "body-6",
+      "type": "body",
+      "voiceText": "Chip A19.",
+      "templateData": { "template": "callout", "statement": "Chip A19 mạnh nhất từ trước đến nay." }
+    },
+    {
+      "id": "body-7",
+      "type": "body",
+      "voiceText": "Màu mới.",
+      "templateData": { "template": "feature-list", "title": "Màu sắc", "bullets": ["Titanium", "Đen", "Trắng"] }
+    },
+    {
+      "id": "body-8",
+      "type": "body",
+      "voiceText": "Dung lượng 256GB.",
+      "templateData": { "template": "stat-hero", "value": "256GB", "label": "Dung lượng" }
+    },
+    {
+      "id": "outro",
+      "type": "outro",
+      "voiceText": "Theo dõi Công nghệ 24h.",
+      "templateData": { "template": "outro", "ctaTop": "Theo dõi ngay", "channelName": "Công nghệ 24h", "source": "vnexpress.net" }
+    }
+  ]
+}
