@@ -490,7 +490,7 @@ Trong cùng category, file được pick **deterministic** bằng hash scene id 
 <details>
 <summary><b>Có dùng được cho ngôn ngữ khác ngoài tiếng Việt không?</b></summary>
 
-Có. Đổi `TTS_PROVIDER=elevenlabs` trong `.env.local` — ElevenLabs hỗ trợ 30+ ngôn ngữ (Anh, Trung, Nhật...).
+Có. Đổi `TTS_PROVIDER=elevenlabs` trong `.env.local` — Vbee/ElevenLabs hỗ trợ 20+ ngôn ngữ (Anh, Trung, Nhật...).
 
 Lưu ý: skill Claude Code hiện đang optimize cho tiếng Việt. Với ngôn ngữ khác bạn nên chỉnh prompt trong `.claude/skills/create-news-video/SKILL.md`.
 </details>
@@ -502,14 +502,14 @@ Khoảng **$0.05–0.15 mỗi video**, tùy provider:
 
 - LucyLab: ~$0.02 / video (rẻ nhất, chỉ tiếng Việt)
 - ElevenLabs: ~$0.10 / video (đa ngôn ngữ)
-- Vbee: không có bảng giá cố định công khai — xem [vbee.vn/pricing](https://vbee.vn/pricing) (liên hệ để nhận báo giá riêng)
-- Claude API (sinh script): ~$0.03 / video
+- Vbee: Xem tại [vbee.vn/pricing](https://vbee.vn/pricing) 
+- Claude Code theo gói trả phí /  Claude API (sinh script): ~$0.03 / video
 </details>
 
 <details>
 <summary><b>Chạy được không cần Claude Code không?</b></summary>
 
-Có — dùng **Cách 2** (`npm run pipeline -- script.json`) với `script.json` viết tay. Skill Claude Code chỉ lo phần "sáng tạo" (viết script tiếng Việt + pick template). Pipeline thuần Node.js — xem [`src/pipeline.ts`](src/pipeline.ts).
+Có — dùng **Cách 3** (`npm run pipeline -- script.json`) với `script.json` viết tay. Skill Claude Code chỉ lo phần "sáng tạo" (viết script tiếng Việt + pick template). Pipeline thuần Node.js — xem [`src/pipeline.ts`](src/pipeline.ts).
 </details>
 
 <details>
