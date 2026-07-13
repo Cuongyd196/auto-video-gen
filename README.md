@@ -650,7 +650,7 @@ Commit prefixes: `feat:` (tính năng mới) · `fix:` (bug) · `docs:` · `refa
 
 Dự án này là bản fork của **[Auto-Create-Video bởi Ho Quang Hai](https://github.com/hoquanghai/Auto-Create-Video)**, phát hành gốc theo giấy phép MIT. Toàn bộ công sức thiết kế pipeline gốc, tích hợp HyperFrames, và hệ thống template thuộc về tác giả gốc — xem [Có gì mới trong bản fork này](#-có-gì-mới-trong-bản-fork-này) để biết phần được bổ sung thêm.
 
-Dự án này cũng đứng trên vai những người khổng lồ:
+Dự án này dựa trên các công nghệ tuyệt vời sau:
 
 - [HyperFrames by HeyGen](https://hyperframes.heygen.com) — framework HTML-to-video làm cho dự án này khả thi
 - [LucyLab.io](https://lucylab.io) — API voice cloning tiếng Việt
