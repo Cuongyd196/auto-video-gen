@@ -3,6 +3,10 @@ import { loadConfig } from "./config.js";
 
 const ENV_KEYS = [
   "TTS_PROVIDER",
+  "EDGE_TTS_VOICE",
+  "EDGE_TTS_RATE",
+  "EDGE_TTS_PITCH",
+  "EDGE_TTS_VOLUME",
   "VIETNAMESE_API_KEY",
   "VIETNAMESE_VOICEID",
   "LUCYLAB_ENDPOINT",
@@ -37,8 +41,41 @@ describe("loadConfig", () => {
     });
   });
 
-  describe("LucyLab provider (default)", () => {
-    it("reads LucyLab env vars when no provider specified", () => {
+  describe("Edge TTS provider (default)", () => {
+    it("reads Edge TTS defaults when no provider specified", () => {
+      const cfg = loadConfig();
+      expect(cfg.ttsProvider).toBe("edge-tts");
+      expect(cfg.edgeTtsVoice).toBe("vi-VN-HoaiMyNeural");
+      expect(cfg.edgeTtsRate).toBe("+0%");
+      expect(cfg.edgeTtsPitch).toBe("+0Hz");
+      expect(cfg.edgeTtsVolume).toBe("+0%");
+      expect(cfg.ttsConcurrency).toBe(1);
+    });
+
+    it("respects EDGE_TTS overrides", () => {
+      process.env.TTS_PROVIDER = "edge-tts";
+      process.env.EDGE_TTS_VOICE = "vi-VN-NamMinhNeural";
+      process.env.EDGE_TTS_RATE = "+10%";
+      process.env.EDGE_TTS_PITCH = "+5Hz";
+      process.env.EDGE_TTS_VOLUME = "-10%";
+      const cfg = loadConfig();
+      expect(cfg.ttsProvider).toBe("edge-tts");
+      expect(cfg.edgeTtsVoice).toBe("vi-VN-NamMinhNeural");
+      expect(cfg.edgeTtsRate).toBe("+10%");
+      expect(cfg.edgeTtsPitch).toBe("+5Hz");
+      expect(cfg.edgeTtsVolume).toBe("-10%");
+    });
+
+    it("accepts 'edgetts' as alias for 'edge-tts'", () => {
+      process.env.TTS_PROVIDER = "edgetts";
+      const cfg = loadConfig();
+      expect(cfg.ttsProvider).toBe("edge-tts");
+    });
+  });
+
+  describe("LucyLab provider", () => {
+    it("reads LucyLab env vars when TTS_PROVIDER=lucylab", () => {
+      process.env.TTS_PROVIDER = "lucylab";
       process.env.VIETNAMESE_API_KEY = "sk_test_abc";
       process.env.VIETNAMESE_VOICEID = "voice123";
       const cfg = loadConfig();
@@ -48,11 +85,13 @@ describe("loadConfig", () => {
     });
 
     it("throws when VIETNAMESE_API_KEY missing", () => {
+      process.env.TTS_PROVIDER = "lucylab";
       process.env.VIETNAMESE_VOICEID = "voice123";
       expect(() => loadConfig()).toThrow(/VIETNAMESE_API_KEY/);
     });
 
     it("uses sensible defaults for optional vars", () => {
+      process.env.TTS_PROVIDER = "lucylab";
       process.env.VIETNAMESE_API_KEY = "k";
       process.env.VIETNAMESE_VOICEID = "v";
       const cfg = loadConfig();

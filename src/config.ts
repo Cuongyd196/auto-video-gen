@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-export type TtsProvider = "lucylab" | "elevenlabs" | "vbee";
+export type TtsProvider = "edge-tts" | "lucylab" | "elevenlabs" | "vbee";
 export type VideoTheme = "dark-neon" | "light-pro";
 
 export interface TiktokConfig {
@@ -13,6 +13,12 @@ export interface TiktokConfig {
 
 export interface Config {
   ttsProvider: TtsProvider;
+
+  // Edge TTS (Free, no API key required)
+  edgeTtsVoice: string;
+  edgeTtsRate: string;
+  edgeTtsPitch: string;
+  edgeTtsVolume: string;
 
   // LucyLab
   lucylabApiKey?: string;
@@ -62,9 +68,18 @@ function floatDefault(name: string, def: number): number {
 }
 
 export function loadConfig(): Config {
-  const provider = (process.env.TTS_PROVIDER ?? "lucylab") as TtsProvider;
-  if (provider !== "lucylab" && provider !== "elevenlabs" && provider !== "vbee") {
-    throw new Error(`TTS_PROVIDER must be "lucylab", "elevenlabs" or "vbee", got "${provider}"`);
+  const rawProvider = (process.env.TTS_PROVIDER ?? "edge-tts").trim().toLowerCase();
+  const provider = (rawProvider === "edgetts" ? "edge-tts" : rawProvider) as TtsProvider;
+
+  if (
+    provider !== "edge-tts" &&
+    provider !== "lucylab" &&
+    provider !== "elevenlabs" &&
+    provider !== "vbee"
+  ) {
+    throw new Error(
+      `TTS_PROVIDER must be "edge-tts", "lucylab", "elevenlabs" or "vbee", got "${rawProvider}"`
+    );
   }
 
   // Validate provider-specific required vars
@@ -94,7 +109,7 @@ export function loadConfig(): Config {
         `Copy .env.example to .env.local and fill in your ElevenLabs voice ID.`
       );
     }
-  } else {
+  } else if (provider === "vbee") {
     if (!process.env.VBEE_APP_ID || process.env.VBEE_APP_ID.trim() === "") {
       throw new Error(
         `Missing VBEE_APP_ID (required when TTS_PROVIDER=vbee). ` +
@@ -116,6 +131,10 @@ export function loadConfig(): Config {
 
   return {
     ttsProvider: provider,
+    edgeTtsVoice: process.env.EDGE_TTS_VOICE ?? "vi-VN-HoaiMyNeural",
+    edgeTtsRate: process.env.EDGE_TTS_RATE ?? "+0%",
+    edgeTtsPitch: process.env.EDGE_TTS_PITCH ?? "+0Hz",
+    edgeTtsVolume: process.env.EDGE_TTS_VOLUME ?? "+0%",
     lucylabApiKey: process.env.VIETNAMESE_API_KEY,
     lucylabVoiceId: process.env.VIETNAMESE_VOICEID,
     lucylabEndpoint: process.env.LUCYLAB_ENDPOINT ?? "https://api.lucylab.io/json-rpc",

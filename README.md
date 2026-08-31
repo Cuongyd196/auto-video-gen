@@ -69,38 +69,37 @@ git clone https://github.com/Cuongyd196/auto-video-gen.git
 cd auto-video-gen
 npm install
 
-# 2. Cấu hình TTS API key
-cp .env.example .env.local
-# → mở .env.local, set TTS_PROVIDER + key (vbee hoặc LucyLab hoặc ElevenLabs)
+# 2. Cấu hình môi trường (mặc định đã sẵn sàng với Edge TTS miễn phí 100%)
+cp .env.example .env
 ```
 
-Sau đó chọn 1 trong 3 cách:
+Sau đó chọn 1 trong các cách sau:
 
-**Cách A — Claude Code trong terminal (khuyến nghị, setup 30 giây):**
+**Cách A — Dùng Antigravity IDE (Khuyến nghị):**
+
+1. Mở thư mục project trong **Antigravity IDE**.
+2. Trong khung chat Antigravity, gõ lệnh:
+   ```
+   /create-news-video https://github.com/zabbix/zabbix
+   ```
+   *(hoặc truyền link bài báo / file .txt)*. Antigravity sẽ tự động đọc bài viết, soạn kịch bản, chạy TTS miễn phí và render video thành phẩm.
+
+**Cách B — Claude Code trong terminal / VS Code:**
 
 1. Cài Claude Code: `npm install -g @anthropic-ai/claude-code`
-2. Trong thư mục project, chạy `claude`, rồi gõ:
+2. Chạy `claude` trong terminal (hoặc panel chat Claude Code trên VS Code), rồi gõ:
    ```
    /create-news-video https://github.com/zabbix/zabbix
    ```
 
-**Cách B — Claude Code trong VS Code:**
-
-1. Cài extension **Claude Code** từ VS Code Marketplace
-2. Mở thư mục project trong VS Code, mở panel chat Claude Code
-3. Gõ lệnh tương tự vào ô chat:
-   ```
-   /create-news-video https://github.com/zabbix/zabbix
-   ```
-
-**Cách C — Không có Claude Code (tự viết script):**
+**Cách C — Chạy thủ công (tự viết kịch bản):**
 
 ```bash
-# Edit script.json thủ công theo src/render/script-schema.ts
+# Edit script.json theo src/render/script-schema.ts
 npm run pipeline -- output/my-video/script.json
 ```
 
-Cả 3 cách: sau ~3–5 phút bạn sẽ có `output/<slug>/video.mp4` — file 1080×1920 sẵn sàng cho TikTok / Shorts / Reels.
+Sau ~3–5 phút bạn sẽ có `output/<slug>/video.mp4` (1080×1920) sẵn sàng cho TikTok / Shorts / Reels kèm file phụ đề `voice/*.srt` và caption TikTok `caption.txt`.
 
 > 💡 **Cần chi tiết?** Xem [Cài đặt đầy đủ](#-cài-đặt-đầy-đủ) · [Cấu hình](#-cấu-hình) · [Sử dụng](#-sử-dụng)
 
@@ -116,11 +115,11 @@ Cả 3 cách: sau ~3–5 phút bạn sẽ có `output/<slug>/video.mp4` — file
 </td>
 <td width="33%" align="center">
 <h3>🎤 Đa nhà cung cấp TTS</h3>
-<sub>LucyLab (giọng Việt cloning + SRT free), ElevenLabs (30+ ngôn ngữ), hoặc Vbee (tiếng Việt, async polling)</sub>
+<sub><b>Edge TTS (Miễn phí 100%, không cần API key, SRT free)</b>, LucyLab, ElevenLabs hoặc Vbee</sub>
 </td>
 <td width="33%" align="center">
-<h3>🤖 Claude Code Skill</h3>
-<sub>Một câu lệnh duy nhất:<br/><code>/create-news-video &lt;url&gt;</code><br/>(input URL / .txt / .md)</sub>
+<h3>🤖 AI Agent Skills</h3>
+<sub>Hỗ trợ cả <b>Antigravity IDE</b> & <b>Claude Code</b>:<br/><code>/create-news-video &lt;url&gt;</code></sub>
 </td>
 </tr>
 <tr>
@@ -134,7 +133,7 @@ Cả 3 cách: sau ~3–5 phút bạn sẽ có `output/<slug>/video.mp4` — file
 </td>
 <td width="33%" align="center">
 <h3>🧪 Production Ready</h3>
-<sub>54 unit tests, Zod schema validation, full TypeScript ESM</sub>
+<sub>60 unit tests, Zod schema validation, full TypeScript ESM</sub>
 </td>
 </tr>
 <tr>
@@ -144,7 +143,7 @@ Cả 3 cách: sau ~3–5 phút bạn sẽ có `output/<slug>/video.mp4` — file
 </td>
 <td width="33%" align="center">
 <h3>♻️ TTS idempotent</h3>
-<sub>Skip re-TTS nếu đã có voice file — tiết kiệm quota qua các lần re-render</sub>
+<sub>Skip re-TTS nếu đã có voice file — tiết kiệm thời gian & quota qua các lần re-render</sub>
 </td>
 <td width="33%" align="center">
 <h3>📝 Sẵn sàng cho CapCut + TikTok</h3>
@@ -155,11 +154,11 @@ Cả 3 cách: sau ~3–5 phút bạn sẽ có `output/<slug>/video.mp4` — file
 
 ---
 
-## 🆕 Có gì mới trong bản fork này
+## 🆕 Có gì mới trong bản cập nhật này
 
-Repo này bắt đầu từ việc fork [hoquanghai/Auto-Create-Video](https://github.com/hoquanghai/Auto-Create-Video) (xem [Lời cảm ơn](#-lời-cảm-ơn)). Trên nền pipeline gốc, bản fork này bổ sung thêm:
-
-- **🎙️ Nhà cung cấp TTS Vbee** — thêm lựa chọn thứ ba (`TTS_PROVIDER=vbee`) bên cạnh LucyLab và ElevenLabs, dùng API TTS tiếng Việt theo mô hình async polling. Xem [Cấu hình](#️-cấu-hình).
+- **🆓 Tích hợp Edge TTS Miễn phí (`edge-tts-universal`)** — sử dụng giọng đọc chất lượng cao của Microsoft Edge TTS hoàn toàn **0đ**, không cần đăng ký tài khoản hay API key, tự động tạo file phụ đề SRT đồng bộ chính xác. Đặt làm TTS mặc định (`TTS_PROVIDER=edge-tts`).
+- **🪐 Hỗ trợ Antigravity Skill (`.agents/skills/create-news-video`)** — tích hợp sẵn chuẩn workspace skill cho **Google Antigravity IDE**, giúp tự động tạo video tin tức chỉ bằng lệnh `/create-news-video <url>` trong khung chat.
+- **🎙️ Nhà cung cấp TTS Vbee** — thêm lựa chọn (`TTS_PROVIDER=vbee`) bên cạnh LucyLab và ElevenLabs, dùng API TTS tiếng Việt theo mô hình async polling. Xem [Cấu hình](#️-cấu-hình).
 - **🎨 Theme giao diện `light-pro`** — phong cách trắng/xám/xanh indigo, sạch sẽ và chuyên nghiệp, thay thế cho theme dark-neon gốc, chọn qua `VIDEO_THEME=light-pro`. Hữu ích khi bạn chạy nhiều kênh/thương hiệu với nhận diện hình ảnh khác nhau. Xem [`styles.light-pro.css`](src/render/templates/styles.light-pro.css).
 - **📝 Tự sinh caption + hashtag TikTok** — sau mỗi lần render thành công, skill sẽ tự viết thêm `caption.txt`: một caption tiếng Việt ngắn gọn kèm đúng 4 hashtag liên quan, sẵn sàng dán thẳng vào màn hình đăng video TikTok.
 
@@ -169,11 +168,11 @@ Repo này bắt đầu từ việc fork [hoquanghai/Auto-Create-Video](https://g
 
 ```mermaid
 flowchart LR
-    A[📰 URL / .txt / .md] -->|/create-news-video| B[Claude Code]
+    A[📰 URL / .txt / .md] -->|/create-news-video| B[Antigravity / Claude Code]
     B -->|fetch + analyze| C[Sinh script.json]
     C -->|Zod validate| D{Template Picker}
     D -->|6 template| E[Loại Scene]
-    E -->|TTS từng scene| F[Vbee / LucyLab / ElevenLabs]
+    E -->|TTS từng scene| F[Edge TTS / Vbee / LucyLab / ElevenLabs]
     F -->|voice.mp3<br/>+ SFX mix| G[HyperFrames]
     G -->|Puppeteer + GSAP| H[Frames @ 30fps]
     H -->|FFmpeg encode| I[🎬 video.mp4 1080×1920]
@@ -185,7 +184,7 @@ flowchart LR
     style G fill:#ec4899,color:#fff
 ```
 
-Pipeline tách bạch rõ: **AI lo phần sáng tạo** (Claude viết kịch bản) và **code deterministic lo phần production** (Node/TS/FFmpeg render pixel) — cùng input → frames giống hệt nhau mỗi lần.
+Pipeline tách bạch rõ: **AI lo phần sáng tạo** (Antigravity/Claude viết kịch bản) và **code deterministic lo phần production** (Node/TS/FFmpeg render pixel) — cùng input → frames giống hệt nhau mỗi lần.
 
 ---
 
@@ -195,13 +194,13 @@ Pipeline tách bạch rõ: **AI lo phần sáng tạo** (Claude viết kịch b�
 |---|---|
 | **Runtime** | Node.js ≥ 22, TypeScript 6+, ESM |
 | **Render engine** | [HyperFrames](https://hyperframes.heygen.com) ^0.4.34 (Puppeteer + GSAP + FFmpeg) |
-| **TTS providers** | [Vbee](https://vbee.vn) hoặc [LucyLab.io](https://lucylab.io) (JSON-RPC async, Vietnamese cloning) hoặc [ElevenLabs](https://elevenlabs.io) (REST sync, multilingual) |
+| **TTS providers** | **Edge TTS** (`edge-tts-universal`, Free/No API Key) · [Vbee](https://vbee.vn) · [LucyLab.io](https://lucylab.io) · [ElevenLabs](https://elevenlabs.io) |
 | **Schema validation** | [Zod](https://zod.dev) ^4 discriminated unions (6 template variants) |
 | **HTTP** | axios ^1.15 + nock (test mocking) |
 | **Concurrency** | [p-limit](https://github.com/sindresorhus/p-limit) ^7 (rate-limit TTS theo provider) |
 | **Testing** | [Vitest](https://vitest.dev) ^4 — ESM-native |
 | **Audio processing** | FFmpeg + ffprobe (mix SFX, concat with silence) |
-| **AI orchestration** | [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) skill (`/create-news-video`) |
+| **AI orchestration** | [Antigravity](https://antigravity.google) / [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) skill (`/create-news-video`) |
 | **Visual blocks** | HyperFrames registry: `grain-overlay`, `shimmer-sweep`, `tiktok-follow` |
 | **Fonts** | Inter (body) + Anton/Bebas Neue (display, theme `dark-neon`) + DM Sans (TikTok card) — Google Fonts |
 
@@ -222,31 +221,25 @@ Pipeline tách bạch rõ: **AI lo phần sáng tạo** (Claude viết kịch b�
 **Tại sao chọn HyperFrames?**
 - ✅ **Có sẵn 50+ pre-built blocks** trong registry (transitions, social cards, kinetic typography...)
 - ✅ **GSAP timeline** đã được tích hợp sẵn cho animations mượt mà
-- ✅ **AI-agent friendly** — Claude/GPT có thể tự sinh composition HTML
+- ✅ **AI-agent friendly** — Claude/Antigravity/GPT có thể tự sinh composition HTML
 - ✅ **Aspect ratio 9:16 native** — sinh ra cho short-form video
 
-### 🎤 LucyLab vs ElevenLabs vs Vbee — chọn cái nào?
+### 🎤 So sánh các nhà cung cấp TTS
 
-| Tiêu chí | LucyLab | ElevenLabs | Vbee |
-|---|---|---|---|
-| **Giọng tiếng Việt** | ⭐⭐⭐⭐⭐ Tự nhiên (voice cloning) | ⭐⭐⭐⭐ Tốt (multilingual) | ⭐⭐⭐⭐ Tốt, 1.000+ giọng AI |
-| **Chi phí** | Rẻ (~25k VND / 1M ký tự) | Đắt hơn (~$5 / 30k ký tự) | Liên hệ báo giá — [vbee.vn/pricing](https://vbee.vn/pricing) |
-| **Voice library** | Tự clone giọng | 1000+ voices có sẵn | 1.000+ giọng dựng sẵn, chọn qua voice code |
-| **API style** | JSON-RPC async (poll) | REST sync (instant) | REST async (poll) |
-| **SRT subtitle** | ✅ Free | ❌ Không có | ❌ Không có |
-| **Concurrency** | 1 export/account | Parallel OK | API hỗ trợ chế độ xử lý bất đồng bộ |
-| **Ngôn ngữ khác** | ❌ Chỉ tiếng Việt | ✅ 30+ ngôn ngữ | ✅ 20+ ngôn ngữ |
-| **Access token** | API key tĩnh | API key tĩnh | VBEE_APP_ID/VBEE_ACCESS_TOKEN |
+| Tiêu chí | Edge TTS (Mặc định) | LucyLab | ElevenLabs | Vbee |
+|---|---|---|---|---|
+| **Chi phí** | 🟢 **Miễn phí 100% (0đ)** | Rẻ (~25k VND / 1M ký tự) | Đắt hơn (~$5 / 30k ký tự) | [vbee.vn/pricing](https://vbee.vn/pricing) |
+| **API Key** | 🟢 **Không cần API Key** | Cần API key | Cần API key | Cần App ID & Token |
+| **Giọng tiếng Việt** | ⭐⭐⭐⭐⭐ Rất mượt (Hoài My, Nam Minh) | ⭐⭐⭐⭐⭐ Tự nhiên (cloning) | ⭐⭐⭐⭐ Tốt (multilingual) | ⭐⭐⭐⭐ Tốt, 1.000+ giọng AI |
+| **SRT subtitle** | ✅ **Tự động xuất SRT** | ✅ Kèm SRT | ❌ Không có | ❌ Không có |
+| **API style** | WebSocket sync | JSON-RPC async (poll) | REST sync (instant) | REST async (poll) |
+| **Ngôn ngữ khác** | ✅ Đa ngôn ngữ (Microsoft TTS) | ❌ Chỉ tiếng Việt | ✅ 30+ ngôn ngữ | ✅ 20+ ngôn ngữ |
 
-> 📄 Chi tiết đầy đủ API Vbee (endpoint, tham số, error codes, giới hạn ký tự/audio link) xem tại [https://vbee.vn/api-docs](https://vbee.vn/api-docs).
-
-**Khuyến nghị:**
-- 🇻🇳 **Hiện tại mình đang dùng Vbee** (gói 1 năm, có Web Studio và tích hợp API) — nếu bạn chưa có tài khoản, có thể đăng ký qua link giới thiệu này: [vbee.vn/ref/5GTJ9TGU](https://vbee.vn/ref/5GTJ9TGU)
-- 🔄 **Đã có sẵn ElevenLabs hoặc LucyLab** → cứ dùng bình thường, đổi qua `TTS_PROVIDER` trong `.env.local` là được, tùy các bạn
+> 💡 **Mặc định dự án sử dụng Edge TTS** — bạn có thể tạo video ngay lập tức mà không cần tốn chi phí hay cài đặt API key phức tạp!
 
 ### 🛡️ Zod — schema validation an toàn
 
-[Zod](https://zod.dev) là TypeScript-first schema library. Trong project này, Zod đảm bảo `script.json` (do Claude sinh) **luôn đúng cấu trúc** trước khi pipeline chạy.
+[Zod](https://zod.dev) là TypeScript-first schema library. Trong project này, Zod đảm bảo `script.json` (do AI sinh) **luôn đúng cấu trúc** trước khi pipeline chạy.
 
 ```ts
 // Discriminated union: 6 loại template, mỗi loại có data shape khác nhau
@@ -256,7 +249,7 @@ const TemplateData = z.discriminatedUnion("template", [
 ```
 
 Lợi ích:
-- Phát hiện ngay nếu Claude sinh script sai (vd: `template: "stat"` không tồn tại) — fail Step 1 với error message rõ ràng
+- Phát hiện ngay nếu AI sinh script sai (vd: `template: "stat"` không tồn tại) — fail Step 1 với error message rõ ràng
 - TypeScript types được suy ra tự động từ Zod schema → composer không cần khai báo type lại
 - Schema = source of truth cho cả validation runtime + type compile-time
 
@@ -269,8 +262,8 @@ Lợi ích:
 | **Node.js** | ≥ 22 | `node --version` |
 | **FFmpeg + ffprobe** | bất kỳ phiên bản hiện đại | trong PATH (`ffmpeg -version`) |
 | **Chrome / Chromium** | bất kỳ | HyperFrames Puppeteer auto-download lần đầu chạy |
-| **Claude Code CLI** | latest | [cài tại đây](https://docs.claude.com/en/docs/claude-code/overview) |
-| **Tài khoản TTS** | một trong ba | LucyLab.io HOẶC ElevenLabs HOẶC Vbee |
+| **AI Coding Agent** | Antigravity IDE hoặc Claude Code | Để tự động viết kịch bản qua skill `/create-news-video` |
+| **Tài khoản TTS** | Tuỳ chọn | **Mặc định Edge TTS (FREE, không cần tài khoản)** hoặc LucyLab / ElevenLabs / Vbee |
 
 ---
 
@@ -307,9 +300,23 @@ npm test             # all 54 tests should pass
 
 ## ⚙️ Cấu hình
 
-Mở `.env.local` và chọn **một trong ba provider**:
+Mở `.env` (hoặc `.env.local`) và chọn **một trong các provider**:
 
-### Option 1 — LucyLab.io
+### Option 1 — Edge TTS (Mặc định - Miễn phí)
+
+```env
+TTS_PROVIDER=edge-tts
+EDGE_TTS_VOICE=vi-VN-HoaiMyNeural
+EDGE_TTS_RATE=+0%
+EDGE_TTS_PITCH=+0Hz
+EDGE_TTS_VOLUME=+0%
+```
+
+- ✅ **Hoàn toàn miễn phí, không cần API key**, tạo âm thanh chất lượng cao qua Microsoft Edge TTS (`edge-tts-universal`)
+- ✅ Hỗ trợ tự động xuất **SRT subtitle**
+- 🎙️ Giọng tiếng Việt: `vi-VN-HoaiMyNeural` (Nữ), `vi-VN-NamMinhNeural` (Nam)
+
+### Option 2 — LucyLab.io
 
 ```env
 TTS_PROVIDER=lucylab
@@ -321,7 +328,7 @@ VIETNAMESE_VOICEID=22charvoiceiduuidhere
 - ⚠️ Chỉ 1 export/account đồng thời (pipeline tự xử lý)
 - 🔗 Đăng ký: https://lucylab.io
 
-### Option 2 — ElevenLabs
+### Option 3 — ElevenLabs
 
 ```env
 TTS_PROVIDER=elevenlabs
@@ -334,7 +341,7 @@ ELEVENLABS_MODEL_ID=eleven_multilingual_v2
 - ⚠️ Đắt hơn LucyLab, không có SRT đi kèm
 - 🔗 Lấy key: https://elevenlabs.io/app/settings/api-keys · Browse voices: https://elevenlabs.io/app/voice-library
 
-### Option 3 — Vbee *(thêm trong bản fork này)*
+### Option 4 — Vbee *(thêm trong bản fork này)*
 
 ```env
 TTS_PROVIDER=vbee

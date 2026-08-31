@@ -38,6 +38,7 @@
   "dependencies": {
     "axios": "^1.15.2",
     "dotenv": "^17.4.2",
+    "edge-tts-universal": "^1.4.0",
     "hyperframes": "^0.4.34",
     "p-limit": "^7.3.0",
     "zod": "^4.3.6"

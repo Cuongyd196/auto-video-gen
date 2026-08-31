@@ -14,12 +14,20 @@ export interface TtsClient {
 }
 
 import type { Config } from "../config.js";
+import { EdgeTtsClient } from "./edge-tts-client.js";
 import { LucylabClient } from "./lucylab-client.js";
 import { ElevenLabsClient } from "./elevenlabs-client.js";
 import { VbeeClient } from "./vbee-client.js";
 
 export function createTtsClient(cfg: Config): TtsClient {
   switch (cfg.ttsProvider) {
+    case "edge-tts":
+      return new EdgeTtsClient({
+        voice: cfg.edgeTtsVoice,
+        rate: cfg.edgeTtsRate,
+        pitch: cfg.edgeTtsPitch,
+        volume: cfg.edgeTtsVolume,
+      });
     case "lucylab":
       return new LucylabClient({
         apiKey: cfg.lucylabApiKey!,

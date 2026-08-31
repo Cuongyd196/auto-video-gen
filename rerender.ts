@@ -38,7 +38,11 @@ async function main() {
   // Load script.json
   const raw = JSON.parse(await readFile(join(outputDir, "script.json"), "utf8"));
   if (raw.voice?.voiceId === "${VIETNAMESE_VOICEID}" || raw.voice?.voiceId === "${VOICE_ID}") {
-    raw.voice.voiceId = cfg.ttsProvider === "lucylab" ? cfg.lucylabVoiceId! : cfg.elevenlabsVoiceId!;
+    raw.voice.voiceId =
+      cfg.ttsProvider === "edge-tts" ? cfg.edgeTtsVoice
+      : cfg.ttsProvider === "lucylab" ? cfg.lucylabVoiceId!
+      : cfg.ttsProvider === "elevenlabs" ? cfg.elevenlabsVoiceId!
+      : cfg.vbeeVoiceCode;
   }
   const script = ScriptSchema.parse(raw);
 

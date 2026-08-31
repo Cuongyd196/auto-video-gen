@@ -56,8 +56,7 @@ Creating short-form news videos is **time-consuming and repetitive**:
 | ⏱️ Time per video | ~3 hours | **~5 minutes** |
 | 🎓 Skill required | Video editor | **None** |
 | 🎯 Consistency | Varies | **Studio-grade every time** |
-| 💰 Cost per video | $50–200 (freelancer) | **Claude Code + TTS API** |
-| 🇻🇳 Vietnamese voice | Time-consuming | **Vbee/ElevenLabs/LucyLab** |
+| 💰 Cost per video | $50–200 (freelancer) | **Claude Code + Edge TTS (Free)** |
 
 ---
 
@@ -69,38 +68,37 @@ git clone https://github.com/Cuongyd196/auto-video-gen.git
 cd auto-video-gen
 npm install
 
-# 2. Configure TTS API key
-cp .env.example .env.local
-# → edit .env.local, set TTS_PROVIDER + key (vbee or LucyLab or ElevenLabs)
+# 2. Configure environment (works out of the box with 100% Free Edge TTS)
+cp .env.example .env
 ```
 
-Then choose one of 3 paths:
+Then choose one of the paths:
 
-**Path A — Claude Code in the terminal (recommended, 30 seconds setup):**
+**Path A — Antigravity IDE (Recommended):**
+
+1. Open the project folder in **Antigravity IDE**.
+2. In the chat box, type:
+   ```
+   /create-news-video https://github.com/zabbix/zabbix
+   ```
+   *(or provide any news article URL or .txt file)*. Antigravity will automatically fetch content, write the motion script, generate Free Edge TTS audio, and render the complete MP4 video.
+
+**Path B — Claude Code in terminal / VS Code:**
 
 1. Install Claude Code: `npm install -g @anthropic-ai/claude-code`
-2. Inside the project directory, run `claude`, then type:
+2. Run `claude` in your terminal (or open the Claude Code panel in VS Code), then type:
    ```
    /create-news-video https://github.com/zabbix/zabbix
    ```
 
-**Path B — Claude Code in VS Code:**
-
-1. Install the **Claude Code** extension from the VS Code Marketplace
-2. Open the project folder in VS Code, open the Claude Code chat panel
-3. Type the same command into the chat box:
-   ```
-   /create-news-video https://github.com/zabbix/zabbix
-   ```
-
-**Path C — Without Claude Code (hand-write the script):**
+**Path C — Without AI Coding Agent (hand-write the script):**
 
 ```bash
 # Edit script.json manually based on src/render/script-schema.ts
 npm run pipeline -- output/my-video/script.json
 ```
 
-Any path: after ~3–5 minutes you'll have `output/<slug>/video.mp4` — a 1080×1920 MP4 ready for TikTok / Shorts / Reels.
+After ~3–5 minutes you'll have `output/<slug>/video.mp4` — a 1080×1920 MP4 ready for TikTok / Shorts / Reels with synced SRT subtitles and `caption.txt`.
 
 > 💡 **Need details?** Jump to [Full Setup](#-full-setup) · [Configuration](#-configuration) · [Usage](#-usage)
 
@@ -115,12 +113,12 @@ Any path: after ~3–5 minutes you'll have `output/<slug>/video.mp4` — a 1080�
 <sub>hook · comparison · stat-hero · feature-list · callout · outro</sub>
 </td>
 <td width="33%" align="center">
-<h3>🎤 Multi-TTS</h3>
-<sub>LucyLab (Vietnamese cloning + free SRT), ElevenLabs (30+ languages), or Vbee (Vietnamese, async polling)</sub>
+<h3>🎤 Multi-TTS Engine</h3>
+<sub><b>Edge TTS (100% Free, no API key, free SRT)</b>, LucyLab, ElevenLabs, or Vbee</sub>
 </td>
 <td width="33%" align="center">
-<h3>🤖 Claude Code Skill</h3>
-<sub>One slash command:<br/><code>/create-news-video &lt;url&gt;</code><br/>(URL / .txt / .md input)</sub>
+<h3>🤖 AI Agent Skills</h3>
+<sub>Supports both <b>Antigravity IDE</b> & <b>Claude Code</b>:<br/><code>/create-news-video &lt;url&gt;</code></sub>
 </td>
 </tr>
 <tr>
@@ -134,7 +132,7 @@ Any path: after ~3–5 minutes you'll have `output/<slug>/video.mp4` — a 1080�
 </td>
 <td width="33%" align="center">
 <h3>🧪 Production Ready</h3>
-<sub>54 unit tests, Zod schema validation, full TypeScript ESM</sub>
+<sub>60 unit tests, Zod schema validation, full TypeScript ESM</sub>
 </td>
 </tr>
 <tr>
@@ -144,7 +142,7 @@ Any path: after ~3–5 minutes you'll have `output/<slug>/video.mp4` — a 1080�
 </td>
 <td width="33%" align="center">
 <h3>♻️ Idempotent TTS</h3>
-<sub>Skips re-synthesis if voice files exist — saves API quota across re-renders</sub>
+<sub>Skips re-synthesis if voice files exist — saves time and API quota across re-renders</sub>
 </td>
 <td width="33%" align="center">
 <h3>📝 CapCut + TikTok Ready</h3>
@@ -155,11 +153,11 @@ Any path: after ~3–5 minutes you'll have `output/<slug>/video.mp4` — a 1080�
 
 ---
 
-## 🆕 What's new in this fork
+## 🆕 What's new in this update
 
-This repo started as a fork of [hoquanghai/Auto-Create-Video](https://github.com/hoquanghai/Auto-Create-Video) (see [Acknowledgements](#-acknowledgements)). On top of the original pipeline, this fork adds:
-
-- **🎙️ Vbee TTS provider** — a third TTS option (`TTS_PROVIDER=vbee`) alongside LucyLab and ElevenLabs, for a Vietnamese async-polling voice API. See [Configuration](#️-configuration).
+- **🆓 Free Edge TTS Integration (`edge-tts-universal`)** — high-quality speech synthesis via Microsoft Edge TTS with **zero cost**, no account or API keys required, and automatic word-level SRT subtitle generation. Configured as the default provider (`TTS_PROVIDER=edge-tts`).
+- **🪐 Antigravity Workspace Skill (`.agents/skills/create-news-video`)** — native workspace skill support for **Google Antigravity IDE**, enabling automated one-click video creation with `/create-news-video <url>`.
+- **🎙️ Vbee TTS provider** — TTS option (`TTS_PROVIDER=vbee`) alongside LucyLab and ElevenLabs, for a Vietnamese async-polling voice API. See [Configuration](#️-configuration).
 - **🎨 `light-pro` visual theme** — a white/slate/indigo, clean-corporate alternative to the original dark-neon look, selected via `VIDEO_THEME=light-pro`. Handy for running more than one channel/brand with distinct visual identities. See [`styles.light-pro.css`](src/render/templates/styles.light-pro.css).
 - **📝 Auto TikTok caption + hashtags** — after every successful render, the skill now also writes `caption.txt`: a short punchy Vietnamese caption plus exactly 4 relevant hashtags, ready to paste straight into the TikTok upload screen.
 
@@ -169,11 +167,11 @@ This repo started as a fork of [hoquanghai/Auto-Create-Video](https://github.com
 
 ```mermaid
 flowchart LR
-    A[📰 URL / .txt / .md] -->|/create-news-video| B[Claude Code]
+    A[📰 URL / .txt / .md] -->|/create-news-video| B[Antigravity / Claude Code]
     B -->|fetch + analyze| C[Generate script.json]
     C -->|Zod validate| D{Template Picker}
     D -->|6 templates| E[Scene Types]
-    E -->|TTS per scene| F[Vbee / LucyLab / ElevenLabs]
+    E -->|TTS per scene| F[Edge TTS / Vbee / LucyLab / ElevenLabs]
     F -->|voice.mp3<br/>+ SFX mix| G[HyperFrames]
     G -->|Puppeteer + GSAP| H[Frames @ 30fps]
     H -->|FFmpeg encode| I[🎬 video.mp4 1080×1920]
@@ -185,7 +183,7 @@ flowchart LR
     style G fill:#ec4899,color:#fff
 ```
 
-The pipeline is **AI for content** (Claude writes the script) and **deterministic code for production** (Node/TS/FFmpeg renders the pixels) — same input → identical frames every time.
+The pipeline clearly separates concerns: **AI handles creativity** (Antigravity/Claude writes the motion script) and **deterministic code handles production** (Node/TS/FFmpeg renders pixel-perfect frames) — identical input yields identical output every time.
 
 ---
 
@@ -195,80 +193,76 @@ The pipeline is **AI for content** (Claude writes the script) and **deterministi
 |---|---|
 | **Runtime** | Node.js ≥ 22, TypeScript 6+, ESM |
 | **Render engine** | [HyperFrames](https://hyperframes.heygen.com) ^0.4.34 (Puppeteer + GSAP + FFmpeg) |
-| **TTS providers** | [Vbee](https://vbee.vn) or [LucyLab.io](https://lucylab.io) (JSON-RPC async, Vietnamese cloning) or [ElevenLabs](https://elevenlabs.io) (REST sync, multilingual) |
+| **TTS providers** | **Edge TTS** (`edge-tts-universal`, Free / No API Key) · [Vbee](https://vbee.vn) · [LucyLab.io](https://lucylab.io) · [ElevenLabs](https://elevenlabs.io) |
 | **Schema validation** | [Zod](https://zod.dev) ^4 discriminated unions (6 template variants) |
 | **HTTP** | axios ^1.15 + nock (test mocking) |
-| **Concurrency** | [p-limit](https://github.com/sindresorhus/p-limit) ^7 (TTS rate-limiting per provider) |
+| **Concurrency** | [p-limit](https://github.com/sindresorhus/p-limit) ^7 (rate-limit TTS per provider) |
 | **Testing** | [Vitest](https://vitest.dev) ^4 — ESM-native |
 | **Audio processing** | FFmpeg + ffprobe (mix SFX, concat with silence) |
-| **AI orchestration** | [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) skill (`/create-news-video`) |
+| **AI orchestration** | [Antigravity](https://antigravity.google) / [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) skill (`/create-news-video`) |
 | **Visual blocks** | HyperFrames registry: `grain-overlay`, `shimmer-sweep`, `tiktok-follow` |
-| **Fonts** | Inter (body) + Anton/Bebas Neue (display, `dark-neon` theme) + DM Sans (TikTok card) — Google Fonts |
+| **Fonts** | Inter (body) + Anton/Bebas Neue (display, theme `dark-neon`) + DM Sans (TikTok card) — Google Fonts |
 
 ---
 
-## 🔬 A closer look at the core tech
+## 🔬 Technology Deep-Dive
 
-### 🎞️ HyperFrames — the heart of the render engine
+### 🎞️ HyperFrames — the rendering core
 
-[HyperFrames](https://hyperframes.heygen.com) is an HTML-to-video framework built and open-sourced by **HeyGen**. Unlike After Effects or Premiere, HyperFrames lets you **write video in HTML/CSS/JS** and render it to high-quality MP4 in a **deterministic** way (same input → same output, frame-by-frame).
+[HyperFrames](https://hyperframes.heygen.com) is an open-source HTML-to-video framework created by **HeyGen**. Unlike traditional NLEs like After Effects or Premiere, HyperFrames lets you **write video compositions in standard HTML/CSS/JS** and render them to broadcast-quality MP4 **deterministically** (same input → identical frame-by-frame output).
 
-**How it's used in this project:**
-1. The pipeline generates an `index.html` file containing all scenes + the GSAP timeline
-2. HyperFrames spawns headless Chrome (Puppeteer) to load that file
-3. Captures each frame at the correct timestamp
-4. Encodes all frames + audio into an MP4 with FFmpeg
+**How it works in this project:**
+1. The pipeline generates an `index.html` file containing all scenes + GSAP animation timeline
+2. HyperFrames spawns a headless Chrome instance (via Puppeteer) to render the composition
+3. Captures every individual frame at exact timestamp ticks (30fps × 60s = 1800 frames)
+4. Encodes and muxes all frames + audio into an MP4 using FFmpeg
 
 **Why HyperFrames?**
-- ✅ **AI-agent friendly** — Claude/GPT can author the composition HTML directly
-- ✅ **Native 9:16 aspect ratio** — built for short-form video
+- ✅ **50+ pre-built registry blocks** (transitions, social cards, kinetic typography...)
+- ✅ **Built-in GSAP timeline** for buttery-smooth 60fps-capable animations
+- ✅ **AI-agent native** — Claude, Antigravity, or GPT can easily generate semantic HTML compositions
+- ✅ **9:16 vertical native** — built from the ground up for short-form video
 
-### 🎤 LucyLab vs ElevenLabs vs Vbee — which one?
+### 🎤 TTS Provider Comparison
 
-| Criteria | LucyLab | ElevenLabs | Vbee |
-|---|---|---|---|
-| **Vietnamese voice** | ⭐⭐⭐⭐⭐ Natural (voice cloning) | ⭐⭐⭐⭐ Good (multilingual) | ⭐⭐⭐⭐ Good, 1,000+ AI voices |
-| **Cost** | Cheap (~25k VND / 1M chars) | Pricier (~$5 / 30k chars) | Contact for quote — [vbee.vn/pricing](https://vbee.vn/pricing) |
-| **Voice library** | Self voice-cloning | 1000+ voices available | 1,000+ prebuilt voices, picked via voice code |
-| **API style** | JSON-RPC async (poll) | REST sync (instant) | REST async (poll) |
-| **SRT subtitle** | ✅ Free | ❌ None | ❌ None |
-| **Concurrency** | 1 export/account | Parallel OK | API supports async processing mode |
-| **Other languages** | ❌ Vietnamese only | ✅ 30+ languages | ✅ 20+ languages |
-| **Access token** | Static API key | Static API key | `VBEE_APP_ID`/`VBEE_ACCESS_TOKEN` |
+| Criteria | Edge TTS (Default) | LucyLab | ElevenLabs | Vbee |
+|---|---|---|---|---|
+| **Cost** | 🟢 **100% Free ($0)** | Cheap (~$1 / 1M chars) | Premium (~$5 / 30k chars) | [vbee.vn/pricing](https://vbee.vn/pricing) |
+| **API Key** | 🟢 **No API Key Required** | Requires API Key | Requires API Key | Requires App ID & Token |
+| **Vietnamese voice** | ⭐⭐⭐⭐⭐ Very natural (Hoài My, Nam Minh) | ⭐⭐⭐⭐⭐ Voice cloning | ⭐⭐⭐⭐ High quality (multilingual) | ⭐⭐⭐⭐ Good, 1,000+ AI voices |
+| **SRT subtitles** | ✅ **Auto-generated SRT** | ✅ Included | ❌ None | ❌ None |
+| **API style** | WebSocket sync | JSON-RPC async (poll) | REST sync (instant) | REST async (poll) |
+| **Other languages** | ✅ 30+ languages (Microsoft) | ❌ Vietnamese only | ✅ 30+ languages | ✅ 20+ languages |
 
-> 📄 Full Vbee API details (endpoints, parameters, error codes, character/audio-link limits) at [https://vbee.vn/api-docs](https://vbee.vn/api-docs).
+> 💡 **Edge TTS is enabled by default** — you can immediately generate videos with zero setup cost or API credentials!
 
-**Recommendation:**
-- 🇻🇳 **We currently use Vbee** (1-year plan, with Web Studio and API integration) — if you don't have an account yet, you can sign up via this referral link: [vbee.vn/ref/5GTJ9TGU](https://vbee.vn/ref/5GTJ9TGU)
-- 🔄 **Already have ElevenLabs or LucyLab?** → keep using it, just switch `TTS_PROVIDER` in `.env.local`, whichever you prefer
+### 🛡️ Zod — Type-safe Schema Validation
 
-### 🛡️ Zod — safe schema validation
-
-[Zod](https://zod.dev) is a TypeScript-first schema library. In this project, Zod guarantees `script.json` (Claude-generated) **is always well-formed** before the pipeline runs.
+[Zod](https://zod.dev) is a TypeScript-first schema library. In this project, Zod ensures the `script.json` generated by AI **always complies with the schema** before the render pipeline starts.
 
 ```ts
-// Discriminated union: 6 template types, each with its own data shape
+// Discriminated union: 6 template variants, each with its own data shape
 const TemplateData = z.discriminatedUnion("template", [
   HookData, ComparisonData, StatHeroData, FeatureListData, CalloutData, OutroData,
 ]);
 ```
 
 Benefits:
-- Immediately catches an invalid script from Claude (e.g. `template: "stat"` doesn't exist) — fails Step 1 with a clear error message
-- TypeScript types are inferred automatically from the Zod schema — the composer never redeclares types
-- The schema is the single source of truth for both runtime validation and compile-time types
+- Immediate detection of invalid scripts (e.g. non-existent templates) — fails early with pinpoint error messages
+- TypeScript types are inferred directly from Zod schema — eliminates duplication in the composer
+- Schema serves as single source of truth for runtime validation and compile-time types
 
 ---
 
-## 📋 Prerequisites
+## 📋 System Requirements
 
 | Item | Version | Notes |
 |---|---|---|
 | **Node.js** | ≥ 22 | `node --version` |
-| **FFmpeg + ffprobe** | any modern | must be in PATH (`ffmpeg -version`) |
-| **Chrome / Chromium** | any | auto-downloaded by Puppeteer on first render |
-| **Claude Code CLI** | latest | [install here](https://docs.claude.com/en/docs/claude-code/overview) |
-| **TTS account** | one of three | LucyLab.io OR ElevenLabs OR Vbee |
+| **FFmpeg + ffprobe** | modern version | must be in PATH (`ffmpeg -version`) |
+| **Chrome / Chromium** | any | HyperFrames Puppeteer auto-downloads on first run |
+| **AI Coding Agent** | Antigravity IDE or Claude Code | For automated scripting with `/create-news-video` |
+| **TTS Account** | Optional | **Default Edge TTS (FREE, zero setup)** or LucyLab / ElevenLabs / Vbee |
 
 ---
 
@@ -305,9 +299,23 @@ npm test             # 54 tests should pass
 
 ## ⚙️ Configuration
 
-Open `.env.local` and pick **one of three providers**:
+Open `.env` (or `.env.local`) and pick **one of the providers**:
 
-### Option 1 — LucyLab.io
+### Option 1 — Edge TTS (Default - Free)
+
+```env
+TTS_PROVIDER=edge-tts
+EDGE_TTS_VOICE=vi-VN-HoaiMyNeural
+EDGE_TTS_RATE=+0%
+EDGE_TTS_PITCH=+0Hz
+EDGE_TTS_VOLUME=+0%
+```
+
+- ✅ **Completely free, no API key required**, high quality Microsoft Edge TTS via `edge-tts-universal`
+- ✅ Automatically generates **SRT subtitles**
+- 🎙️ Vietnamese voices: `vi-VN-HoaiMyNeural` (Female), `vi-VN-NamMinhNeural` (Male)
+
+### Option 2 — LucyLab.io
 
 ```env
 TTS_PROVIDER=lucylab
@@ -319,7 +327,7 @@ VIETNAMESE_VOICEID=22charvoiceiduuidhere
 - ⚠️ Only 1 concurrent export per account (pipeline serialises automatically)
 - 🔗 Sign up: https://lucylab.io
 
-### Option 2 — ElevenLabs
+### Option 3 — ElevenLabs
 
 ```env
 TTS_PROVIDER=elevenlabs
@@ -332,7 +340,7 @@ ELEVENLABS_MODEL_ID=eleven_multilingual_v2
 - ⚠️ Pricier than LucyLab, no SRT included
 - 🔗 Get key: https://elevenlabs.io/app/settings/api-keys · Browse voices: https://elevenlabs.io/app/voice-library
 
-### Option 3 — Vbee *(added in this fork)*
+### Option 4 — Vbee *(added in this fork)*
 
 ```env
 TTS_PROVIDER=vbee

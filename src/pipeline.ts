@@ -51,7 +51,8 @@ export async function runPipeline(scriptPath: string): Promise<void> {
   // Substitute env placeholder before validation (works for all providers)
   if (raw.voice?.voiceId === "${VIETNAMESE_VOICEID}" || raw.voice?.voiceId === "${VOICE_ID}") {
     raw.voice.voiceId =
-      cfg.ttsProvider === "lucylab" ? cfg.lucylabVoiceId!
+      cfg.ttsProvider === "edge-tts" ? cfg.edgeTtsVoice
+      : cfg.ttsProvider === "lucylab" ? cfg.lucylabVoiceId!
       : cfg.ttsProvider === "elevenlabs" ? cfg.elevenlabsVoiceId!
       : cfg.vbeeVoiceCode;
   }

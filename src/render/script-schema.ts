@@ -106,7 +106,7 @@ export const ScriptSchema = z.object({
     channel: z.string().min(1),
   }),
   voice: z.object({
-    provider: z.literal("lucylab"),
+    provider: z.string().min(1),
     voiceId: z.string().min(1),
     speed: z.number().min(0.5).max(2.0),
   }),
