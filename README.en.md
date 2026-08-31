@@ -56,7 +56,8 @@ Creating short-form news videos is **time-consuming and repetitive**:
 | ⏱️ Time per video | ~3 hours | **~5 minutes** |
 | 🎓 Skill required | Video editor | **None** |
 | 🎯 Consistency | Varies | **Studio-grade every time** |
-| 💰 Cost per video | $50–200 (freelancer) | **Claude Code + Edge TTS (Free)** |
+| 💰 Cost per video | $50–200 (freelancer) | **$0 (Edge TTS Free) / AI Agent** |
+| 🇻🇳 Vietnamese voice | Time-consuming | **Edge TTS (Free) / Vbee / LucyLab / ElevenLabs** |
 
 ---
 
@@ -496,26 +497,25 @@ Within a category, files are picked **deterministically** by hashing the scene i
 <details>
 <summary><b>Can I use this for languages other than Vietnamese?</b></summary>
 
-Yes. Switch `TTS_PROVIDER=elevenlabs` in `.env.local` — Vbee/ElevenLabs supports 20+ languages including English, Chinese, Japanese.
+Yes. You can use `TTS_PROVIDER=edge-tts` (Microsoft Edge TTS supports dozens of languages for free) or `TTS_PROVIDER=elevenlabs` in `.env`.
 
-Note: the Claude Code skill currently optimises script generation for Vietnamese. For other languages you may want to adjust the prompts in `.claude/skills/create-news-video/SKILL.md`.
+Note: the skill currently optimises script generation for Vietnamese. For other languages you may want to adjust the prompts in `.agents/skills/create-news-video/SKILL.md` or `.claude/skills/create-news-video/SKILL.md`.
 </details>
 
 <details>
 <summary><b>How much does it cost per video?</b></summary>
 
-Roughly **$0.05–0.15 per video**, depending on TTS provider:
-
-- LucyLab: ~$0.02 per video (cheapest, Vietnamese only)
-- ElevenLabs: ~$0.10 per video (multilingual)
-- Vbee: no public price list — see [vbee.vn/pricing](https://vbee.vn/pricing) (contact for a custom quote)
-- Claude Code subscription / Claude API (script generation): ~$0.03 per video
+- **Edge TTS (Default):** **$0.00 (100% Free)**, no API key required.
+- **LucyLab:** ~$0.02 per video (cheapest, Vietnamese voice cloning with free SRT)
+- **ElevenLabs:** ~$0.10 per video (multilingual)
+- **Vbee:** see [vbee.vn/pricing](https://vbee.vn/pricing)
+- **AI Agent (script generation):** Antigravity IDE / Claude Code
 </details>
 
 <details>
-<summary><b>Can I run this without Claude Code?</b></summary>
+<summary><b>Can I run this without Claude Code / Antigravity?</b></summary>
 
-Yes — use **Method 3** (`npm run pipeline -- script.json`) with a hand-written `script.json`. The Claude Code skill is only used for the "creative" step (writing Vietnamese script + picking templates). The pipeline itself is pure Node.js — see [`src/pipeline.ts`](src/pipeline.ts).
+Yes — use **Path C** (`npm run pipeline -- script.json`) with a hand-written `script.json`. The AI skill is only used for the "creative" step (writing Vietnamese script + picking templates). The pipeline itself is pure Node.js — see [`src/pipeline.ts`](src/pipeline.ts).
 </details>
 
 <details>

@@ -56,8 +56,8 @@ Việc tạo video tin tức ngắn rất **tốn thời gian và lặp đi lặ
 | ⏱️ Thời gian | ~3 tiếng | **~5 phút** |
 | 🎓 Kỹ năng cần | Editor video | **Không cần** |
 | 🎯 Độ ổn định | Phụ thuộc người làm | **Studio-grade mọi video** |
-| 💰 Chi phí | $50–200 (freelancer) | **Claude Code + TTS API** |
-| 🇻🇳 Giọng tiếng Việt | Tốn thời gian | **Vbee/ElevenLabs/LucyLab** |
+| 💰 Chi phí | $50–200 (freelancer) | **0đ (Edge TTS Free) / AI Agent** |
+| 🇻🇳 Giọng tiếng Việt | Tốn thời gian | **Edge TTS (Free) / Vbee / LucyLab / ElevenLabs** |
 
 ---
 
@@ -497,26 +497,25 @@ Trong cùng category, file được pick **deterministic** bằng hash scene id 
 <details>
 <summary><b>Có dùng được cho ngôn ngữ khác ngoài tiếng Việt không?</b></summary>
 
-Có. Đổi `TTS_PROVIDER=elevenlabs` trong `.env.local` — Vbee/ElevenLabs hỗ trợ 20+ ngôn ngữ (Anh, Trung, Nhật...).
+Có. Bạn có thể dùng `TTS_PROVIDER=edge-tts` (Microsoft Edge TTS hỗ trợ hàng chục ngôn ngữ miễn phí) hoặc `TTS_PROVIDER=elevenlabs` trong `.env`.
 
-Lưu ý: skill Claude Code hiện đang optimize cho tiếng Việt. Với ngôn ngữ khác bạn nên chỉnh prompt trong `.claude/skills/create-news-video/SKILL.md`.
+Lưu ý: skill hiện đang optimize cho tiếng Việt. Với ngôn ngữ khác bạn nên chỉnh prompt trong skill (`.agents/skills/create-news-video/SKILL.md` hoặc `.claude/skills/create-news-video/SKILL.md`).
 </details>
 
 <details>
 <summary><b>Mỗi video tốn bao nhiêu tiền?</b></summary>
 
-Khoảng **$0.05–0.15 mỗi video**, tùy provider:
-
-- LucyLab: ~$0.02 / video (rẻ nhất, chỉ tiếng Việt)
-- ElevenLabs: ~$0.10 / video (đa ngôn ngữ)
-- Vbee: Xem tại [vbee.vn/pricing](https://vbee.vn/pricing) 
-- Claude Code theo gói trả phí /  Claude API (sinh script): ~$0.03 / video
+- **Edge TTS (Mặc định):** **0đ (Hoàn toàn Miễn Phí)**, không cần API key.
+- **LucyLab:** ~$0.02 / video (rẻ, tiếng Việt voice cloning kèm SRT)
+- **ElevenLabs:** ~$0.10 / video (đa ngôn ngữ)
+- **Vbee:** Xem tại [vbee.vn/pricing](https://vbee.vn/pricing)
+- **AI Agent (sinh script):** Antigravity IDE / Claude Code
 </details>
 
 <details>
-<summary><b>Chạy được không cần Claude Code không?</b></summary>
+<summary><b>Chạy được không cần Claude Code / Antigravity không?</b></summary>
 
-Có — dùng **Cách 3** (`npm run pipeline -- script.json`) với `script.json` viết tay. Skill Claude Code chỉ lo phần "sáng tạo" (viết script tiếng Việt + pick template). Pipeline thuần Node.js — xem [`src/pipeline.ts`](src/pipeline.ts).
+Có — dùng **Cách C** (`npm run pipeline -- script.json`) với `script.json` viết tay. Skill AI chỉ lo phần "sáng tạo" (viết script tiếng Việt + pick template). Pipeline thuần Node.js — xem [`src/pipeline.ts`](src/pipeline.ts).
 </details>
 
 <details>
