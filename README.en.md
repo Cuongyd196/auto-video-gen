@@ -230,7 +230,7 @@ The pipeline clearly separates concerns: **AI handles creativity** (Antigravity/
 |---|---|---|---|---|
 | **Cost** | 🟢 **100% Free ($0)** | Cheap (~$1 / 1M chars) | Premium (~$5 / 30k chars) | [vbee.vn/pricing](https://vbee.vn/pricing) |
 | **API Key** | 🟢 **No API Key Required** | Requires API Key | Requires API Key | Requires App ID & Token |
-| **Vietnamese voice** | ⭐⭐⭐⭐⭐ Very natural (Hoài My, Nam Minh) | ⭐⭐⭐⭐⭐ Voice cloning | ⭐⭐⭐⭐ High quality (multilingual) | ⭐⭐⭐⭐ Good, 1,000+ AI voices |
+| **Vietnamese voice** | ⭐⭐⭐⭐ (Hoài My, Nam Minh) | ⭐⭐⭐⭐⭐ Voice cloning | ⭐⭐⭐⭐ High quality (multilingual) | ⭐⭐⭐⭐ Good, 1,000+ AI voices |
 | **SRT subtitles** | ✅ **Auto-generated SRT** | ✅ Included | ❌ None | ❌ None |
 | **API style** | WebSocket sync | JSON-RPC async (poll) | REST sync (instant) | REST async (poll) |
 | **Other languages** | ✅ 30+ languages (Microsoft) | ❌ Vietnamese only | ✅ 30+ languages | ✅ 20+ languages |
@@ -609,7 +609,7 @@ Tests cover Zod schema validation (6 templates), TTS clients for LucyLab + Eleve
 
 ## 🗺️ Roadmap
 
-- [ ] Free local Voice integration (offline TTS, no API key required)
+- [x] Free Voice integration (Edge TTS, no API key required)
 - [ ] Web UI (no Claude Code required)
 - [ ] Auto-upload to TikTok / YouTube Shorts / Reels via API
 

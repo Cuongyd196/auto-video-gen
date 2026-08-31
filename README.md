@@ -230,7 +230,7 @@ Pipeline tách bạch rõ: **AI lo phần sáng tạo** (Antigravity/Claude vi�
 |---|---|---|---|---|
 | **Chi phí** | 🟢 **Miễn phí 100% (0đ)** | Rẻ (~25k VND / 1M ký tự) | Đắt hơn (~$5 / 30k ký tự) | [vbee.vn/pricing](https://vbee.vn/pricing) |
 | **API Key** | 🟢 **Không cần API Key** | Cần API key | Cần API key | Cần App ID & Token |
-| **Giọng tiếng Việt** | ⭐⭐⭐⭐⭐ Rất mượt (Hoài My, Nam Minh) | ⭐⭐⭐⭐⭐ Tự nhiên (cloning) | ⭐⭐⭐⭐ Tốt (multilingual) | ⭐⭐⭐⭐ Tốt, 1.000+ giọng AI |
+| **Giọng tiếng Việt** | ⭐⭐⭐⭐ (Hoài My, Nam Minh) | ⭐⭐⭐⭐⭐ Tự nhiên (cloning) | ⭐⭐⭐⭐ Tốt (multilingual) | ⭐⭐⭐⭐ Tốt, 1.000+ giọng AI |
 | **SRT subtitle** | ✅ **Tự động xuất SRT** | ✅ Kèm SRT | ❌ Không có | ❌ Không có |
 | **API style** | WebSocket sync | JSON-RPC async (poll) | REST sync (instant) | REST async (poll) |
 | **Ngôn ngữ khác** | ✅ Đa ngôn ngữ (Microsoft TTS) | ❌ Chỉ tiếng Việt | ✅ 30+ ngôn ngữ | ✅ 20+ ngôn ngữ |
@@ -609,7 +609,7 @@ Tests cover Zod schema validation (6 templates), TTS clients cho cả LucyLab + 
 
 ## 🗺️ Roadmap
 
-- [ ] Tích hợp Voice Local miễn phí (TTS offline, không cần API key)
+- [x] Tích hợp Voice Miễn phí (Edge TTS, không cần API key)
 - [ ] Giao diện web UI (không cần Claude Code)
 - [ ] Tự động đăng TikTok / YouTube Shorts / Reels qua API
 
