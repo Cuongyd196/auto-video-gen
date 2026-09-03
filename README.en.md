@@ -14,7 +14,7 @@
 [![Node](https://img.shields.io/badge/node-22%2B-brightgreen?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/typescript-5%2B-blue?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-[**🇬🇧 English**](README.en.md) · [**🇻🇳 Tiếng Việt**](README.md) · [**📺 Watch Demo**](https://youtube.com/shorts/X8P_5tsHy4o) · [**🚀 Quick Start**](#-quick-start) · [**❓ FAQ**](#-faq)
+[**🇬🇧 English**](README.en.md) · [**🇻🇳 Tiếng Việt**](README.md) · [**📖 Full Docs (VN)**](README.full.md) · [**📺 Watch Demo**](https://youtube.com/shorts/X8P_5tsHy4o) · [**🚀 Quick Start**](#-quick-start) · [**❓ FAQ**](#-faq)
 
 </div>
 
@@ -614,35 +614,6 @@ Tests cover Zod schema validation (6 templates), TTS clients for LucyLab + Eleve
 - [ ] Auto-upload to TikTok / YouTube Shorts / Reels via API
 
 Have a feature request? [Open an issue](https://github.com/Cuongyd196/auto-video-gen/issues/new).
-
----
-
-## ⭐ Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Cuongyd196/auto-video-gen&type=Date)](https://star-history.com/#Cuongyd196/auto-video-gen&Date)
-
----
-
-## 🤝 Contributing
-
-Pull requests welcome! For major changes, please open an issue first to discuss what you'd like to change.
-
-```bash
-# Fork → clone → branch
-git checkout -b feature/my-improvement
-
-# Make changes, ensure tests pass
-npm test
-npx tsc --noEmit
-
-# Commit using Conventional Commits
-git commit -m "feat: add Google TTS provider support"
-
-# Push and open PR
-git push origin feature/my-improvement
-```
-
-Commit prefixes: `feat:` (new feature) · `fix:` (bug) · `docs:` · `refactor:` · `test:` · `chore:`
 
 ---
 
