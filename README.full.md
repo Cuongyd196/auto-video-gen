@@ -641,6 +641,23 @@ Dự án này dựa trên các công nghệ tuyệt vời sau:
 
 ---
 
+## 💬 Cộng đồng & Các mẫu tạo video khác
+
+Xem các mẫu tạo video khác tại:
+
+- Link repo tạo video từ 1 chủ đề với Remotion: 🔗 [github.com/Cuongyd196/remotion-cuongit-template](https://github.com/Cuongyd196/remotion-cuongit-template)
+- Link tạo video so sánh kiến thức: 🔗 [github.com/Cuongyd196/auto-compare-video](https://github.com/Cuongyd196/auto-compare-video)
+
+Mình tạo nhóm này cho các bạn trao đổi về Làm Video với AI nhé.  
+Với các repo mình công khai, có vướng mắc mình sẽ giải đáp cho các bạn.
+
+- 👥 Nhóm trên Facebook: [facebook.com/groups/1010029065373486](https://www.facebook.com/groups/1010029065373486/)
+- 👥 Nhóm trên Zalo: [zalo.me/g/8bfeotyh5ewtkzxmp5gt](https://zalo.me/g/8bfeotyh5ewtkzxmp5gt)
+
+Nếu hữu ích với các bạn thì cho mình 1 star GitHub nhé 🌟
+
+---
+
 ## 💖 Ủng hộ dự án
 
 Nếu dự án giúp bạn tiết kiệm thời gian, hãy:
