@@ -1,7 +1,7 @@
 {
   "name": "auto-news-video",
   "version": "2.0.0",
-  "description": "Auto-generate Vietnamese 9:16 short news videos from URL/txt — Claude Code skill + HyperFrames + LucyLab/ElevenLabs TTS",
+  "description": "TTS-first 9:16 product video generator for TikTok, YouTube Shorts and Facebook Reels",
   "main": "src/cli.ts",
   "directories": {
     "doc": "docs"
@@ -20,20 +20,20 @@
   "keywords": [
     "video",
     "tts",
-    "news",
+    "product-video",
     "vietnamese",
     "tiktok",
+    "reels",
     "shorts",
     "hyperframes",
-    "claude-code",
-    "lucylab",
-    "elevenlabs"
+    "codex",
+    "ffmpeg"
   ],
-  "author": "Cuongyd196",
+  "author": "namnth2000",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Cuongyd196/auto-video-gen.git"
+    "url": "https://github.com/namnth2000/auto-video-gen.git"
   },
   "dependencies": {
     "axios": "^1.15.2",
