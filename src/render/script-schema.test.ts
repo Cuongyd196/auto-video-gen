@@ -14,6 +14,56 @@ describe("ScriptSchema", () => {
     expect(() => ScriptSchema.parse(load("sample-script-no-image.json"))).not.toThrow();
   });
 
+  it("accepts a product demo using local media", () => {
+    const data = {
+      version: "1.0",
+      metadata: { title: "FitPic demo" },
+      voice: { provider: "edge-tts", voiceId: "vi-VN-NamMinhNeural", speed: 1 },
+      scenes: [
+        {
+          id: "hook",
+          type: "hook",
+          voiceText: "Một ảnh nhưng mỗi nơi lại cần một tỉ lệ khác nhau.",
+          subtitle: "Một ảnh, nhiều tỉ lệ",
+          templateData: {
+            template: "screen-demo",
+            src: "assets/demo/01-upload.mp4",
+            mediaType: "video",
+            fit: "contain",
+            layout: "full",
+            mediaStartSec: 0,
+            headline: "Đăng ảnh ở nhiều nơi?",
+          },
+        },
+        {
+          id: "ratio",
+          type: "body",
+          voiceText: "FitPic giúp đổi tỉ lệ mà vẫn giữ nội dung chính.",
+          templateData: {
+            template: "screen-demo",
+            src: "assets/demo/02-change-ratio.mp4",
+            mediaType: "video",
+          },
+        },
+        {
+          id: "outro",
+          type: "outro",
+          voiceText: "Thử FitPic miễn phí ngay bây giờ.",
+          templateData: {
+            template: "product-outro",
+            productName: "FitPic",
+            cta: "Thử miễn phí",
+            url: "fitpic.namnth.com",
+          },
+        },
+      ],
+    };
+
+    const parsed = ScriptSchema.parse(data);
+    expect(parsed.scenes).toHaveLength(3);
+    expect(parsed.scenes[1].templateData.template).toBe("screen-demo");
+  });
+
   it("rejects invalid-bad-enum.json", () => {
     expect(() => ScriptSchema.parse(load("invalid-bad-enum.json"))).toThrow(/kenBurns/);
   });
@@ -23,7 +73,6 @@ describe("ScriptSchema", () => {
   });
 
   it("rejects invalid-line-too-long.json", () => {
-    // headline is over 40 chars — Zod error references the max value
     expect(() => ScriptSchema.parse(load("invalid-line-too-long.json"))).toThrow(/40/);
   });
 

@@ -7,17 +7,13 @@ import type { TiktokConfig } from "../config.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TPL_DIR = join(__dirname, "templates");
 
-// Grain overlay HTML inline (from installed component)
 const GRAIN_OVERLAY_HTML = `<div id="grain-overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100;"><div class="grain-texture"></div></div>`;
-
-// Vignette — darkens far edges so content doesn't feel like it's floating in a flat void.
 const VIGNETTE_HTML = `<div class="vignette"></div>`;
 
-// Default TikTok config (used if not passed)
 const DEFAULT_TIKTOK: TiktokConfig = {
-  displayName: "CườngIT",
-  handle: "@cuongit96",
-  followers: "2k followers",
+  displayName: "Channel",
+  handle: "@channel",
+  followers: "",
 };
 
 export interface SceneAudio {
@@ -29,24 +25,29 @@ export interface ComposeArgs {
   script: Script;
   sceneAudio: SceneAudio[];
   gapSec: number;
-  bgImageRelPath: string | null;   // null => no image available
+  bgImageRelPath: string | null;
   audioRelPath: string;
-  /** TikTok follow card config (injected into outro scene). Optional — defaults used if omitted. */
+  sceneMediaRelPaths?: Record<string, string>;
+  productMode?: boolean;
   tiktok?: TiktokConfig;
-  /** Relative path to avatar image inside the output dir (e.g. "tiktok-avatar.jpg"). */
   tiktokAvatarRelPath?: string;
-  /** Extra seconds added to outro scene visual duration after voice ends (TikTok card hold). Default 3. */
   outroHoldSec?: number;
 }
 
 export function composeHtml(args: ComposeArgs): string {
-  const { script, sceneAudio, gapSec, bgImageRelPath, audioRelPath } = args;
+  const {
+    script,
+    sceneAudio,
+    gapSec,
+    bgImageRelPath,
+    audioRelPath,
+    sceneMediaRelPaths = {},
+    productMode = false,
+  } = args;
   const tiktok = args.tiktok ?? DEFAULT_TIKTOK;
   const tiktokAvatar = args.tiktokAvatarRelPath ?? "tiktok-avatar.jpg";
   const outroHoldSec = args.outroHoldSec ?? 3;
 
-  // Compute timing per scene. Outro scene gets extra HOLD seconds so the
-  // TikTok follow card stays visible after the voice ends.
   let cursor = 0;
   const timing = script.scenes.map((scene) => {
     const audio = sceneAudio.find((a) => a.id === scene.id);
@@ -59,15 +60,22 @@ export function composeHtml(args: ComposeArgs): string {
   });
   const totalDuration = cursor;
 
-  // Render scenes
   const sceneHtml = timing.map(({ scene, start, duration }) => {
-    return renderScene(scene, start, duration, bgImageRelPath, tiktok, tiktokAvatar);
+    return renderScene(
+      scene,
+      start,
+      duration,
+      bgImageRelPath,
+      tiktok,
+      tiktokAvatar,
+      sceneMediaRelPaths,
+      productMode,
+    );
   }).join("\n");
 
-  // Persistent shell — uses tiktok handle in footer
-  const shellHtml = renderShell(script.metadata, tiktok);
-
-  const animJs = readFileSync(join(TPL_DIR, "animations.js"), "utf8");
+  const shellHtml = productMode ? "" : renderShell(script.metadata, tiktok);
+  const animationFile = productMode ? "animations.product.js" : "animations.js";
+  const animJs = readFileSync(join(TPL_DIR, animationFile), "utf8");
 
   const tpl = readFileSync(join(TPL_DIR, "base.html.tmpl"), "utf8");
   return tpl
@@ -75,24 +83,26 @@ export function composeHtml(args: ComposeArgs): string {
     .replace(/\{\{TOTAL_DURATION\}\}/g, totalDuration.toFixed(2))
     .replace("{{SHELL}}", shellHtml)
     .replace("{{SCENES}}", sceneHtml)
-    .replace(/src="voice\.mp3"/g, `src="${audioRelPath}"`)
+    .replace(/src="voice\.mp3"/g, `src="${escapeHtml(audioRelPath)}"`)
     .replace('<script src="animations.js"></script>', `<script>\n${animJs}\n</script>`);
 }
 
-// ── PERSISTENT SHELL ───────────────────────────────────────────────────────
 function renderShell(metadata: Script["metadata"], tiktok: TiktokConfig): string {
-  const channel = escapeHtml(metadata.channel);
-  const domain = escapeHtml(metadata.source.domain);
+  const channel = escapeHtml(metadata.channel ?? metadata.title);
+  const domain = metadata.source?.domain ? escapeHtml(metadata.source.domain) : "";
   const handle = escapeHtml(tiktok.handle);
+  const keyword = domain
+    ? `<div class="brand-shell-keyword"><span>${domain}</span></div>`
+    : "";
+
   return `
-<!-- Shell: persistent brand elements (no data-start → always visible) -->
 <div class="shell-bg"></div>
 
 <div class="brand-shell-header">
   <div class="brand-icon">&gt;_</div>
   <div class="brand-text">
     <div class="brand-name">${channel}</div>
-    <div class="brand-tag">BLOG IT</div>
+    <div class="brand-tag">VIDEO</div>
   </div>
 </div>
 
@@ -101,15 +111,11 @@ function renderShell(metadata: Script["metadata"], tiktok: TiktokConfig): string
   <span class="handle-text">${handle}</span>
 </div>
 
-<div class="brand-shell-keyword">
-  <span>${escapeHtml(domain)}</span>
-</div>
-
+${keyword}
 ${VIGNETTE_HTML}
 ${GRAIN_OVERLAY_HTML}`.trim();
 }
 
-// ── SCENE DISPATCH ─────────────────────────────────────────────────────────
 function renderScene(
   scene: Script["scenes"][number],
   start: number,
@@ -117,8 +123,26 @@ function renderScene(
   bgImageRelPath: string | null,
   tiktok: TiktokConfig,
   tiktokAvatarRelPath: string,
+  sceneMediaRelPaths: Record<string, string>,
+  productMode: boolean,
 ): string {
   const td = scene.templateData;
+
+  if (td.template === "screen-demo") {
+    const mediaRelPath = sceneMediaRelPaths[scene.id];
+    if (!mediaRelPath) {
+      throw new Error(`No prepared media found for screen-demo scene id=${scene.id}`);
+    }
+    return renderScreenDemoScene(scene, td, start, duration, mediaRelPath);
+  }
+
+  if (td.template === "text") {
+    return renderTextScene(scene, td, start, duration);
+  }
+
+  if (td.template === "product-outro") {
+    return renderProductOutroScene(scene, td, start, duration);
+  }
 
   let inner: string;
   let layoutName: string;
@@ -145,7 +169,7 @@ function renderScene(
       layoutName = "callout";
       break;
     case "outro":
-      inner = renderOutroInner(td, tiktok, tiktokAvatarRelPath);
+      inner = renderOutroInner(td, tiktok, tiktokAvatarRelPath, productMode);
       layoutName = "outro";
       break;
     default: {
@@ -157,23 +181,92 @@ function renderScene(
   return buildScene(scene, start, duration, layoutName, inner);
 }
 
-// ── HOOK SCENE ─────────────────────────────────────────────────────────────
+function renderScreenDemoScene(
+  scene: Script["scenes"][number],
+  td: Extract<TemplateDataType, { template: "screen-demo" }>,
+  start: number,
+  duration: number,
+  mediaRelPath: string,
+): string {
+  const domId = safeDomId(scene.id);
+  const commonAttrs = `data-start="${start.toFixed(2)}" data-duration="${duration.toFixed(2)}" data-track-index="1"`;
+  const mediaClass = `clip product-demo-media layout-${td.layout} fit-${td.fit}`;
+  const src = escapeHtml(mediaRelPath);
+
+  const media = td.mediaType === "image"
+    ? `<img id="media-${domId}" class="${mediaClass}" ${commonAttrs} src="${src}" alt="" />`
+    : `<video id="media-${domId}" class="${mediaClass}" ${commonAttrs} data-media-start="${td.mediaStartSec.toFixed(2)}" src="${src}" muted playsinline preload="auto"></video>`;
+
+  const headline = td.headline
+    ? `<div class="product-demo-headline">${escapeHtml(td.headline)}</div>`
+    : "";
+  const subtitleText = scene.subtitle ?? scene.voiceText;
+  const subtitle = subtitleText
+    ? `<div class="product-demo-subtitle">${escapeHtml(subtitleText)}</div>`
+    : "";
+
+  const overlay = `
+<div id="overlay-${domId}" class="scene clip product-demo-overlay"
+     data-start="${start.toFixed(2)}" data-duration="${duration.toFixed(2)}" data-track-index="2"
+     data-layout="screen-demo">
+  ${headline}
+  ${subtitle}
+</div>`.trim();
+
+  return `${media}\n${overlay}`;
+}
+
+function renderTextScene(
+  scene: Script["scenes"][number],
+  td: Extract<TemplateDataType, { template: "text" }>,
+  start: number,
+  duration: number,
+): string {
+  const kicker = td.kicker ? `<div class="product-text-kicker">${escapeHtml(td.kicker)}</div>` : "";
+  const subtitleText = scene.subtitle ?? "";
+  const subtitle = subtitleText ? `<div class="product-text-subtitle">${escapeHtml(subtitleText)}</div>` : "";
+
+  return `
+<div id="scene-${safeDomId(scene.id)}" class="scene clip product-text-scene"
+     data-start="${start.toFixed(2)}" data-duration="${duration.toFixed(2)}" data-track-index="1"
+     data-layout="product-text">
+  <div class="product-text-inner">
+    ${kicker}
+    <div class="product-text-main">${escapeHtml(td.text)}</div>
+    ${subtitle}
+  </div>
+</div>`.trim();
+}
+
+function renderProductOutroScene(
+  scene: Script["scenes"][number],
+  td: Extract<TemplateDataType, { template: "product-outro" }>,
+  start: number,
+  duration: number,
+): string {
+  const url = td.url ? `<div class="product-outro-url">${escapeHtml(td.url)}</div>` : "";
+  return `
+<div id="scene-${safeDomId(scene.id)}" class="scene clip product-outro-scene"
+     data-start="${start.toFixed(2)}" data-duration="${duration.toFixed(2)}" data-track-index="1"
+     data-layout="product-outro">
+  <div class="product-outro-inner">
+    <div class="product-outro-name">${escapeHtml(td.productName)}</div>
+    <div class="product-outro-cta">${escapeHtml(td.cta)}</div>
+    ${url}
+  </div>
+</div>`.trim();
+}
+
 function renderHookInner(td: Extract<TemplateDataType, { template: "hook" }>, bgImageRelPath: string | null): string {
-  // Background
   const hasImage = Boolean(td.bgSrc && bgImageRelPath);
   let bgHtml: string;
   if (hasImage) {
-    // Ken Burns image
     const kbClass = td.kenBurns ?? "zoom-in";
     bgHtml = `<div class="bg kb-${kbClass}" style="background-image: url('${bgImageRelPath}')"></div>`;
   } else {
     bgHtml = `<div class="bg gradient-news-dark"></div>`;
   }
-  // Only darken when there's a real photo to tame for text legibility —
-  // our own gradient backgrounds are already tuned for contrast, and a flat
-  // black scrim on top of them just muddies the theme's colors (esp. light-pro).
   const overlayHtml = hasImage ? `<div class="overlay" style="opacity: 0.55"></div>` : "";
-
   const headline = escapeHtml(td.headline);
   const subhead = td.subhead ? escapeHtml(td.subhead) : "";
 
@@ -185,9 +278,8 @@ function renderHookInner(td: Extract<TemplateDataType, { template: "hook" }>, bg
   </div>`;
 }
 
-// ── COMPARISON SCENE ───────────────────────────────────────────────────────
 function renderComparisonInner(td: Extract<TemplateDataType, { template: "comparison" }>): string {
-  const lColor = td.left.color;  // "cyan" | "purple"
+  const lColor = td.left.color;
   const rColor = td.right.color;
   const winnerClass = td.right.winner ? " card-winner" : "";
 
@@ -206,7 +298,6 @@ function renderComparisonInner(td: Extract<TemplateDataType, { template: "compar
 </div>`.trim();
 }
 
-// ── STAT HERO SCENE ────────────────────────────────────────────────────────
 function renderStatHeroInner(td: Extract<TemplateDataType, { template: "stat-hero" }>): string {
   const context = td.context ? `<div class="stat-context">${escapeHtml(td.context)}</div>` : "";
   return `
@@ -217,7 +308,6 @@ function renderStatHeroInner(td: Extract<TemplateDataType, { template: "stat-her
 </div>`.trim();
 }
 
-// ── FEATURE LIST SCENE ─────────────────────────────────────────────────────
 function renderFeatureListInner(td: Extract<TemplateDataType, { template: "feature-list" }>): string {
   const bullets = td.bullets.map((b, i) =>
     `<div class="feat-bullet feat-bullet-${i}" data-idx="${i}">
@@ -238,7 +328,6 @@ function renderFeatureListInner(td: Extract<TemplateDataType, { template: "featu
 </div>`.trim();
 }
 
-// ── CALLOUT SCENE ──────────────────────────────────────────────────────────
 function renderCalloutInner(td: Extract<TemplateDataType, { template: "callout" }>): string {
   const tag = td.tag ? `<div class="callout-tag">${escapeHtml(td.tag)}</div>` : "";
   return `
@@ -250,13 +339,13 @@ function renderCalloutInner(td: Extract<TemplateDataType, { template: "callout" 
 </div>`.trim();
 }
 
-// ── OUTRO SCENE ────────────────────────────────────────────────────────────
 function renderOutroInner(
   td: Extract<TemplateDataType, { template: "outro" }>,
   tiktok: TiktokConfig,
   avatarRelPath: string,
+  productMode: boolean,
 ): string {
-  const ttCard = renderTiktokCard(tiktok, avatarRelPath);
+  const ttCard = productMode ? "" : renderTiktokCard(tiktok, avatarRelPath);
   return `
 <div class="layout-outro">
   <div class="out-cta-top">${escapeHtml(td.ctaTop)}</div>
@@ -267,11 +356,6 @@ function renderOutroInner(
 ${ttCard}`.trim();
 }
 
-/**
- * TikTok follow card — adapted from HyperFrames `tiktok-follow` block.
- * Slides up from bottom mid-outro. Animations are added by animations.js
- * targeting elements with id="tt-card", id="tt-follow-btn", etc.
- */
 function renderTiktokCard(tiktok: TiktokConfig, avatarRelPath: string): string {
   return `
 <div id="tt-card" class="tt-card">
@@ -291,7 +375,6 @@ function renderTiktokCard(tiktok: TiktokConfig, avatarRelPath: string): string {
 </div>`.trim();
 }
 
-// ── HELPERS ────────────────────────────────────────────────────────────────
 function buildScene(
   scene: Script["scenes"][number],
   start: number,
@@ -300,11 +383,15 @@ function buildScene(
   innerHtml: string,
 ): string {
   return `
-<div class="scene clip" id="scene-${scene.id}"
-     data-start="${start.toFixed(2)}" data-duration="${duration.toFixed(2)}" data-active="0"
+<div class="scene clip" id="scene-${safeDomId(scene.id)}"
+     data-start="${start.toFixed(2)}" data-duration="${duration.toFixed(2)}" data-track-index="1" data-active="0"
      data-layout="${layoutName}">
   ${innerHtml}
 </div>`.trim();
+}
+
+function safeDomId(s: string): string {
+  return s.replace(/[^a-zA-Z0-9_-]+/g, "-");
 }
 
 function escapeHtml(s: string): string {

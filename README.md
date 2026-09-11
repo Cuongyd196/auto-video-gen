@@ -1,42 +1,50 @@
 # Auto Video Gen
 
-TTS-first pipeline for creating vertical product videos for TikTok, YouTube Shorts and Facebook Reels.
+TTS-first pipeline for turning real product screen recordings into vertical short-form videos for TikTok, YouTube Shorts and Facebook Reels.
 
-The goal is simple: give Codex product context plus a few screenshots, generate a short script, synthesize Vietnamese voice, render motion graphics and export a ready-to-post 9:16 MP4.
+The product demo is the main visual. The generator handles script timing, TTS, captions, small callouts and rendering.
 
 ## Workflow
 
 ```text
-Product context + screenshots
+Prompt
++ 2-4 screen recordings
++ optional screenshots
         ↓
       Codex
         ↓
    script.json
         ↓
- TTS + timing + visuals
+ Edge TTS + timing
         ↓
-     video.mp4
+ product demo + captions
+        ↓
+   1080x1920 MP4
 ```
 
-V1 focuses on automated short-form product videos. Long-form personal-brand videos can stay in a separate workflow with manual filming and voice recording.
+This repository is intended for fast distribution experiments. Long-form personal-brand videos can remain a separate workflow with manual filming and voice recording.
 
-## What is included
+## What V1 supports
 
-- 1080x1920 vertical video rendering with HyperFrames
+- Local `.mp4` / `.webm` screen recordings as first-class scenes
+- Local `.png` / `.jpg` / `.jpeg` / `.webp` screenshots
+- 1080x1920 rendering with HyperFrames
 - Vietnamese TTS with Edge TTS by default
 - Optional LucyLab, Vbee and ElevenLabs providers
-- Automatic per-scene timing based on generated voice
-- HTML/CSS/GSAP motion graphics
-- SFX mixing with FFmpeg
-- `script.txt` and `voice.mp3` exported with the video
-- Codex instructions in `AGENTS.md`
+- Scene timing based on generated voice duration
+- Baked scene captions and optional short headlines
+- Full-screen or framed product-demo layouts
+- Optional per-scene SFX overrides
+- `voice.mp3` and `script.txt` alongside the final video
+
+Product mode intentionally removes the old persistent news-style shell, fake social profile card and automatic SFX.
 
 ## Requirements
 
 - Node.js 22+
 - FFmpeg
 
-On Windows:
+Windows:
 
 ```bash
 winget install Gyan.FFmpeg
@@ -51,79 +59,80 @@ npm install
 cp .env.example .env.local
 ```
 
-Edge TTS is the default and does not require an API key.
-
-## Create a product video with Codex
-
-Open this repository in Codex and give it the product material you want to turn into a video.
-
-Example:
-
-```text
-Create a 30-second Vietnamese product video for FitPic.
-Focus on this problem: one photo needs different aspect ratios for different social platforms without cropping important content.
-Use Edge TTS and output a vertical 9:16 video.
-```
-
-Codex should follow `AGENTS.md`, create `output/<slug>-<timestamp>/script.json`, then run:
-
-```bash
-npm run pipeline -- output/<slug>-<timestamp>/script.json
-```
-
-The main output is:
-
-```text
-output/<slug>-<timestamp>/video.mp4
-```
-
-Other useful outputs:
-
-```text
-voice.mp3
-script.txt
-index.html
-```
-
-## Script shape
-
-The rendering engine currently supports these reusable scene templates:
-
-- `hook`
-- `comparison`
-- `stat-hero`
-- `feature-list`
-- `callout`
-- `outro`
-
-For product videos, `metadata.source` should describe the product page or project being presented. `metadata.source.image` can point to the main screenshot or image used by the hook.
-
-A typical short should use 5-8 scenes:
-
-```text
-Hook -> Problem -> Demo/Feature -> Benefit -> CTA
-```
-
-Keep `voiceText` conversational and optimized for TTS. Text shown visually can use normal numbers and symbols, while spoken numbers should be written the way they should be pronounced.
-
-## TTS
-
-Choose a provider in `.env.local`:
+The defaults are:
 
 ```env
 TTS_PROVIDER=edge-tts
+EDGE_TTS_VOICE=vi-VN-NamMinhNeural
+VIDEO_THEME=product
 ```
 
-Supported providers:
+Edge TTS does not require an API key.
 
-| Provider | API key | Notes |
-| --- | --- | --- |
-| Edge TTS | No | Default, free, suitable for rapid short-form experiments |
-| LucyLab | Yes | Vietnamese voice options and voice cloning |
-| Vbee | Yes | Vietnamese TTS |
-| ElevenLabs | Yes | Multilingual premium TTS |
+## Recommended input for Codex
 
-For the first iteration, prefer Edge TTS. Upgrade only if voice quality becomes a real distribution bottleneck.
+Put a few short product recordings in the repository, for example:
+
+```text
+assets/demo/
+  01-upload.mp4
+  02-change-ratio.mp4
+  03-background.mp4
+  04-export.mp4
+```
+
+Then ask Codex for one focused video:
+
+```text
+Create a 25-35 second Vietnamese vertical video introducing FitPic.
+Show the real product immediately.
+Use the recordings in assets/demo/.
+Focus on: one photo can be adapted for multiple social media ratios without unnecessarily cropping important content.
+Use Edge TTS.
+CTA: Thử FitPic miễn phí tại fitpic.namnth.com.
+```
+
+Codex should follow `AGENTS.md`, create `output/<slug>-<timestamp>/script.json`, then run the pipeline.
+
+## Product scene example
+
+```json
+{
+  "id": "ratio",
+  "type": "body",
+  "voiceText": "Chọn tỉ lệ phù hợp với nơi bạn muốn đăng.",
+  "subtitle": "Chọn tỉ lệ cho từng nền tảng",
+  "templateData": {
+    "template": "screen-demo",
+    "src": "assets/demo/02-change-ratio.mp4",
+    "mediaType": "video",
+    "fit": "contain",
+    "layout": "full",
+    "mediaStartSec": 0,
+    "headline": "Một ảnh, nhiều tỉ lệ"
+  }
+}
+```
+
+`mediaStartSec` lets the script start from a later point in the source recording without manually trimming the file.
+
+Use `layout: "full"` for vertical/mobile recordings and `layout: "framed"` for wide desktop recordings.
+
+The final scene should normally use `product-outro`:
+
+```json
+{
+  "id": "outro",
+  "type": "outro",
+  "voiceText": "Bạn có thể thử FitPic miễn phí ngay bây giờ.",
+  "templateData": {
+    "template": "product-outro",
+    "productName": "FitPic",
+    "cta": "Thử miễn phí",
+    "url": "fitpic.namnth.com"
+  }
+}
+```
 
 ## Commands
 
@@ -135,18 +144,26 @@ npm run typecheck
 npm run build
 ```
 
-`rerender` keeps existing voice files, which is useful when only visual changes are needed.
+The full pipeline copies referenced local media into the output directory so `rerender` can reuse it later without touching the source recording again.
+
+## TTS
+
+Supported providers:
+
+| Provider | API key | Use |
+| --- | --- | --- |
+| Edge TTS | No | Default for fast experiments |
+| LucyLab | Yes | Vietnamese voice / cloning options |
+| Vbee | Yes | Vietnamese TTS |
+| ElevenLabs | Yes | Premium multilingual TTS |
+
+Start with Edge TTS. Upgrade only if voice quality becomes a real distribution bottleneck.
 
 ## V1 boundaries
 
-This version intentionally keeps the workflow small:
+This version deliberately does not include browser auto-capture, automatic publishing, complex motion-graphic templates or a full timeline editor.
 
-- TTS is the primary voice workflow
-- Product screenshots and motion graphics are supported through the existing rendering model
-- Automatic browser recording and advanced video-demo composition are not part of this pass
-- No platform-specific publishing automation yet
-
-The next useful extension, once the basic output is good enough to publish, is first-class screen-recording scenes for product demos.
+The intended manual step is recording a few clean product interactions. The pipeline automates the repetitive narration, timing, captions and final render around those clips.
 
 ## License
 

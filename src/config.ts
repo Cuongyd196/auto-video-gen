@@ -1,39 +1,34 @@
 import "dotenv/config";
 
 export type TtsProvider = "edge-tts" | "lucylab" | "elevenlabs" | "vbee";
-export type VideoTheme = "dark-neon" | "light-pro";
+export type VideoTheme = "product" | "dark-neon" | "light-pro";
 
 export interface TiktokConfig {
   displayName: string;
   handle: string;
   followers: string;
-  /** URL to download avatar JPG. If undefined, the bundled `assets/avatar.jpg` is used. */
   avatarUrl?: string;
 }
 
 export interface Config {
   ttsProvider: TtsProvider;
 
-  // Edge TTS (Free, no API key required)
   edgeTtsVoice: string;
   edgeTtsRate: string;
   edgeTtsPitch: string;
   edgeTtsVolume: string;
 
-  // LucyLab
   lucylabApiKey?: string;
   lucylabVoiceId?: string;
   lucylabEndpoint: string;
   lucylabPollIntervalMs: number;
   lucylabPollTimeoutMs: number;
 
-  // ElevenLabs
   elevenlabsApiKey?: string;
   elevenlabsVoiceId?: string;
   elevenlabsModelId: string;
   elevenlabsEndpoint: string;
 
-  // Vbee
   vbeeAppId?: string;
   vbeeAccessToken?: string;
   vbeeEndpoint: string;
@@ -42,12 +37,8 @@ export interface Config {
   vbeePollIntervalMs: number;
   vbeePollTimeoutMs: number;
 
-  // TikTok follow card (outro)
   tiktok: TiktokConfig;
-
   ttsConcurrency: number;
-
-  /** Visual template — selects which styles.<theme>.css file gets used. */
   videoTheme: VideoTheme;
 }
 
@@ -82,7 +73,6 @@ export function loadConfig(): Config {
     );
   }
 
-  // Validate provider-specific required vars
   if (provider === "lucylab") {
     if (!process.env.VIETNAMESE_API_KEY || process.env.VIETNAMESE_API_KEY.trim() === "") {
       throw new Error(
@@ -124,14 +114,14 @@ export function loadConfig(): Config {
     }
   }
 
-  const videoTheme = (process.env.VIDEO_THEME ?? "dark-neon") as VideoTheme;
-  if (videoTheme !== "dark-neon" && videoTheme !== "light-pro") {
-    throw new Error(`VIDEO_THEME must be "dark-neon" or "light-pro", got "${videoTheme}"`);
+  const videoTheme = (process.env.VIDEO_THEME ?? "product") as VideoTheme;
+  if (videoTheme !== "product" && videoTheme !== "dark-neon" && videoTheme !== "light-pro") {
+    throw new Error(`VIDEO_THEME must be "product", "dark-neon" or "light-pro", got "${videoTheme}"`);
   }
 
   return {
     ttsProvider: provider,
-    edgeTtsVoice: process.env.EDGE_TTS_VOICE ?? "vi-VN-HoaiMyNeural",
+    edgeTtsVoice: process.env.EDGE_TTS_VOICE ?? "vi-VN-NamMinhNeural",
     edgeTtsRate: process.env.EDGE_TTS_RATE ?? "+0%",
     edgeTtsPitch: process.env.EDGE_TTS_PITCH ?? "+0Hz",
     edgeTtsVolume: process.env.EDGE_TTS_VOLUME ?? "+0%",
@@ -152,9 +142,9 @@ export function loadConfig(): Config {
     vbeePollIntervalMs: intDefault("VBEE_POLL_INTERVAL_MS", 2000),
     vbeePollTimeoutMs: intDefault("VBEE_POLL_TIMEOUT_MS", 60000),
     tiktok: {
-      displayName: process.env.TIKTOK_DISPLAY_NAME ?? "Công nghệ 24h",
-      handle: process.env.TIKTOK_HANDLE ?? "@congnghe24h",
-      followers: process.env.TIKTOK_FOLLOWERS ?? "1.2M followers",
+      displayName: process.env.TIKTOK_DISPLAY_NAME ?? "Channel",
+      handle: process.env.TIKTOK_HANDLE ?? "@channel",
+      followers: process.env.TIKTOK_FOLLOWERS ?? "",
       avatarUrl: process.env.TIKTOK_AVATAR_URL || undefined,
     },
     ttsConcurrency: intDefault("TTS_CONCURRENCY", 1),

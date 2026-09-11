@@ -1,14 +1,11 @@
 import { z } from "zod";
 
-// ── Template data shapes (discriminated by template field) ─────────────────
-
+// Legacy template data shapes retained for backwards compatibility.
 const HookData = z.object({
   template: z.literal("hook"),
   headline: z.string().min(1).max(40),
   subhead: z.string().max(40).optional(),
-  /** background image path (literal "$source.image" → substituted at pipeline level) */
   bgSrc: z.string().optional(),
-  /** Ken Burns effect class */
   kenBurns: z.enum(["zoom-in", "zoom-out", "pan-left", "pan-right"]).default("zoom-in"),
 });
 
@@ -51,6 +48,30 @@ const OutroData = z.object({
   source: z.string().min(1).max(40),
 });
 
+// Product-first primitives.
+const ScreenDemoData = z.object({
+  template: z.literal("screen-demo"),
+  src: z.string().min(1),
+  mediaType: z.enum(["video", "image"]).default("video"),
+  fit: z.enum(["contain", "cover"]).default("contain"),
+  layout: z.enum(["full", "framed"]).default("full"),
+  mediaStartSec: z.number().min(0).default(0),
+  headline: z.string().max(80).optional(),
+});
+
+const TextData = z.object({
+  template: z.literal("text"),
+  text: z.string().min(1).max(120),
+  kicker: z.string().max(30).optional(),
+});
+
+const ProductOutroData = z.object({
+  template: z.literal("product-outro"),
+  productName: z.string().min(1).max(40),
+  cta: z.string().min(1).max(80),
+  url: z.string().max(80).optional(),
+});
+
 export const TemplateData = z.discriminatedUnion("template", [
   HookData,
   ComparisonData,
@@ -58,41 +79,29 @@ export const TemplateData = z.discriminatedUnion("template", [
   FeatureListData,
   CalloutData,
   OutroData,
+  ScreenDemoData,
+  TextData,
+  ProductOutroData,
 ]);
 
 export type TemplateDataType = z.infer<typeof TemplateData>;
 
-// ── SFX schema ─────────────────────────────────────────────────────────────
-/**
- * Per-scene sound effect override. If omitted, the pipeline picks a default
- * SFX based on the template type (see SKILL.md / pipeline DEFAULT_SFX).
- *
- * `name` examples: "transition/whoosh-soft", "emphasis/ding", "alert/notification"
- *   → resolves to assets/sfx/<name>.mp3
- * Set `name: "none"` to explicitly disable SFX for this scene.
- */
 const SfxSpec = z.object({
   name: z.string().min(1),
-  /** Volume 0–1, default 0.4 (so SFX doesn't drown the voice) */
   volume: z.number().min(0).max(1).default(0.4),
-  /** Seconds offset from scene start (default 0). Negative = before scene. */
   startOffsetSec: z.number().default(0),
 });
 
 export type SfxSpecType = z.infer<typeof SfxSpec>;
 
-// ── Scene schema ───────────────────────────────────────────────────────────
-
 const Scene = z.object({
   id: z.string().min(1),
   type: z.enum(["hook", "body", "outro"]),
   voiceText: z.string().min(1),
+  subtitle: z.string().max(220).optional(),
   templateData: TemplateData,
-  /** Optional sound effect override (else pipeline picks per template) */
   sfx: SfxSpec.optional(),
 });
-
-// ── Root schema ────────────────────────────────────────────────────────────
 
 export const ScriptSchema = z.object({
   version: z.literal("1.0"),
@@ -102,8 +111,8 @@ export const ScriptSchema = z.object({
       url: z.string(),
       domain: z.string(),
       image: z.string().url().nullable(),
-    }),
-    channel: z.string().min(1),
+    }).optional(),
+    channel: z.string().min(1).optional(),
   }),
   voice: z.object({
     provider: z.string().min(1),
@@ -112,7 +121,7 @@ export const ScriptSchema = z.object({
   }),
   scenes: z
     .array(Scene)
-    .min(5)
+    .min(3)
     .max(8, "scenes must have at most 8 items")
     .refine(
       (s) => s[0]?.type === "hook",

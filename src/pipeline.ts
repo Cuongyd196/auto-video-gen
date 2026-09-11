@@ -1,5 +1,5 @@
 import { readFile, writeFile, mkdir, copyFile } from "node:fs/promises";
-import { join, dirname, basename } from "node:path";
+import { join, dirname, basename, extname, isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import pLimit from "p-limit";
 import { ScriptSchema, type Script } from "./render/script-schema.js";
@@ -14,20 +14,14 @@ import { renderWithHyperframes } from "./render/hyperframes-runner.js";
 import { log } from "./utils/logger.js";
 
 const TOTAL_STEPS = 8;
-const DURATION_MIN_SEC = 48;
-const DURATION_MAX_SEC = 72;
 const SCENE_GAP_SEC = 0.3;
-/**
- * Extra seconds added to the outro scene visual duration AFTER the voice ends.
- * Gives the TikTok follow card time to be read by the viewer (otherwise the
- * video ends a few hundred ms after the card slides up + click animation).
- * Audio stays silent during this hold; visual stays on screen.
- */
-const OUTRO_HOLD_SEC = 3;
+const LEGACY_DURATION_MIN_SEC = 48;
+const LEGACY_DURATION_MAX_SEC = 72;
+const PRODUCT_DURATION_MIN_SEC = 20;
+const PRODUCT_DURATION_MAX_SEC = 45;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TPL_DIR = join(__dirname, "render", "templates");
-/** Path to the SFX library (relative to project root) */
 const SFX_DIR = join(__dirname, "..", "assets", "sfx");
 
 const HYPERFRAMES_CONFIG = {
@@ -45,10 +39,8 @@ export async function runPipeline(scriptPath: string): Promise<void> {
   const outputDir = dirname(scriptPath);
   log.info(`Output directory: ${outputDir}`);
 
-  // STEP 1
   log.step(1, TOTAL_STEPS, `Load env + validate script.json (TTS provider: ${cfg.ttsProvider})`);
   const raw = JSON.parse(await readFile(scriptPath, "utf8"));
-  // Substitute env placeholder before validation (works for all providers)
   if (raw.voice?.voiceId === "${VIETNAMESE_VOICEID}" || raw.voice?.voiceId === "${VOICE_ID}") {
     raw.voice.voiceId =
       cfg.ttsProvider === "edge-tts" ? cfg.edgeTtsVoice
@@ -57,21 +49,22 @@ export async function runPipeline(scriptPath: string): Promise<void> {
       : cfg.vbeeVoiceCode;
   }
   const script: Script = ScriptSchema.parse(raw);
+  const productMode = script.scenes.some((scene) =>
+    scene.templateData.template === "screen-demo" ||
+    scene.templateData.template === "text" ||
+    scene.templateData.template === "product-outro"
+  );
+  const sceneMediaRelPaths = await prepareSceneMedia(script, scriptPath, outputDir);
 
-  // STEP 2
-  log.step(2, TOTAL_STEPS, "Write script.txt for CapCut");
+  log.step(2, TOTAL_STEPS, "Write script.txt");
   const fullText = script.scenes.map((s) => s.voiceText).join("\n\n");
   await writeFile(join(outputDir, "script.txt"), fullText);
 
-  // STEP 3 + 4 in parallel
-  log.step(3, TOTAL_STEPS, "Fetch og:image (parallel) + Step 4 TTS");
+  log.step(3, TOTAL_STEPS, "Prepare optional source image + Step 4 TTS");
   const imgPath = join(outputDir, "images", "bg.jpg");
-  const imgPromise = fetchImage(script.metadata.source.image, imgPath);
+  const imgPromise = fetchImage(script.metadata.source?.image ?? null, imgPath);
 
-  // STEP 4
   const ttsClient = createTtsClient(cfg);
-  // Concurrency: LucyLab requires 1 (only 1 concurrent export per key);
-  // ElevenLabs supports parallel calls but we keep 1 by default to be polite.
   const limit = pLimit(cfg.ttsConcurrency);
   const voiceDir = join(outputDir, "voice");
   await mkdir(voiceDir, { recursive: true });
@@ -81,12 +74,9 @@ export async function runPipeline(scriptPath: string): Promise<void> {
       const out = join(voiceDir, `scene-${scene.id}.mp3`);
       const srtOut = join(voiceDir, `scene-${scene.id}.srt`);
 
-      // IDEMPOTENT: skip TTS if voice file already exists.
-      // To force re-TTS for a scene, delete its mp3 file before running.
-      // This saves API quota when only some scenes' voiceText changed.
       if (existsSync(out)) {
         const dur = await getDurationSec(out);
-        log.info(`  scene ${scene.id}: REUSE existing mp3 (${dur.toFixed(2)}s) — delete to force re-TTS`);
+        log.info(`  scene ${scene.id}: REUSE existing mp3 (${dur.toFixed(2)}s) - delete to force re-TTS`);
         return { id: scene.id, path: out, durationSec: dur };
       }
 
@@ -106,17 +96,15 @@ export async function runPipeline(scriptPath: string): Promise<void> {
   let bgImageRelPath: string | null = null;
   if (imgResult.success) {
     bgImageRelPath = "images/bg.jpg";
-  } else {
-    log.warn(`Background image fetch failed: ${imgResult.reason} → using gradient fallback`);
+  } else if (!productMode && script.metadata.source?.image) {
+    log.warn(`Background image fetch failed: ${imgResult.reason} -> using gradient fallback`);
   }
 
-  // STEP 5
-  log.step(5, TOTAL_STEPS, "Concat voice scenes + mix SFX layer");
+  log.step(5, TOTAL_STEPS, productMode ? "Concat voice scenes" : "Concat voice scenes + mix SFX layer");
   const voiceRawMp3 = join(outputDir, "voice-raw.mp3");
   const voiceMp3 = join(outputDir, "voice.mp3");
   await concatWithSilence(sceneAudio.map((a) => a.path), SCENE_GAP_SEC, voiceRawMp3);
 
-  // Compute scene start times (cumulative voice durations + gaps)
   let cursor = 0;
   const sceneStarts: Record<string, number> = {};
   for (const a of sceneAudio) {
@@ -124,22 +112,13 @@ export async function runPipeline(scriptPath: string): Promise<void> {
     cursor += a.durationSec + SCENE_GAP_SEC;
   }
 
-  // Build SFX mix list using smart 3-tier selector
   const sfxIndex = indexSfxLibrary(SFX_DIR);
-  const indexCats = Object.keys(sfxIndex).length;
-  const indexFiles = Object.values(sfxIndex).reduce((s, a) => s + a.length, 0);
-  log.info(`  SFX library: ${indexFiles} files in ${indexCats} categories`);
-
   const sfxList: SfxMixSpec[] = [];
   for (const scene of script.scenes) {
     const startSec = sceneStarts[scene.id];
 
-    // Tier 1: explicit override in script.json
     if (scene.sfx) {
-      if (scene.sfx.name === "none") {
-        log.info(`  scene ${scene.id}: SFX disabled (explicit "none")`);
-        continue;
-      }
+      if (scene.sfx.name === "none") continue;
       const sfxPath = join(SFX_DIR, `${scene.sfx.name}.mp3`);
       if (existsSync(sfxPath)) {
         sfxList.push({ path: sfxPath, startSec: startSec + scene.sfx.startOffsetSec, volume: scene.sfx.volume });
@@ -150,17 +129,16 @@ export async function runPipeline(scriptPath: string): Promise<void> {
       continue;
     }
 
-    // Tier 2/3: smart selection by content + template
+    // Product videos should sound clean by default. Add SFX only when explicitly requested.
+    if (productMode) continue;
+
     const picked = pickSfxForScene({
       voiceText: scene.voiceText,
       templateName: scene.templateData.template,
       sceneId: scene.id,
       index: sfxIndex,
     });
-    if (!picked) {
-      log.warn(`  scene ${scene.id}: no SFX available (empty library?)`);
-      continue;
-    }
+    if (!picked) continue;
 
     const sfxPath = join(SFX_DIR, picked.relPath);
     const playback = defaultPlayback(picked);
@@ -171,56 +149,59 @@ export async function runPipeline(scriptPath: string): Promise<void> {
       : picked.source;
     log.info(`  scene ${scene.id}: SFX -> ${picked.relPath} (${why})`);
   }
-  log.info(`  mixing ${sfxList.length} SFX into voice.mp3`);
+
   await mixSfxOntoVoice(voiceRawMp3, sfxList, voiceMp3);
 
   const totalAudioSec = await getDurationSec(voiceMp3);
   log.info(`  voice.mp3 total: ${totalAudioSec.toFixed(2)}s`);
-  if (totalAudioSec < DURATION_MIN_SEC || totalAudioSec > DURATION_MAX_SEC) {
-    log.warn(`Total duration ${totalAudioSec.toFixed(1)}s outside [${DURATION_MIN_SEC}, ${DURATION_MAX_SEC}]s tolerance — proceeding anyway`);
+  const durationMin = productMode ? PRODUCT_DURATION_MIN_SEC : LEGACY_DURATION_MIN_SEC;
+  const durationMax = productMode ? PRODUCT_DURATION_MAX_SEC : LEGACY_DURATION_MAX_SEC;
+  if (totalAudioSec < durationMin || totalAudioSec > durationMax) {
+    log.warn(`Total duration ${totalAudioSec.toFixed(1)}s outside [${durationMin}, ${durationMax}]s target - proceeding anyway`);
   }
 
-  // STEP 6 — Compose HTML + write hyperframes project files
   log.step(6, TOTAL_STEPS, "Compose HTML + project files");
 
-  // Resolve TikTok avatar — download URL if provided, else copy bundled default
-  // Bundled avatar can be jpg/jpeg/png/webp — pick whichever exists
-  const findBundledAvatar = (): string => {
-    const baseDir = join(__dirname, "..", "assets");
-    for (const ext of ["jpg", "jpeg", "png", "webp"]) {
-      const p = join(baseDir, `avatar.${ext}`);
-      if (existsSync(p)) return p;
-    }
-    throw new Error(`No bundled avatar found. Place an image at assets/avatar.{jpg,png,webp}`);
-  };
-  const bundledAvatar = findBundledAvatar();
-  const ttAvatarExt = bundledAvatar.split(".").pop()!.toLowerCase();
-  const ttAvatarFile = `tiktok-avatar.${ttAvatarExt}`;
-  const ttAvatarOut = join(outputDir, ttAvatarFile);
-  if (cfg.tiktok.avatarUrl) {
-    const r = await fetchImage(cfg.tiktok.avatarUrl, ttAvatarOut);
-    if (!r.success) {
-      log.warn(`TikTok avatar download failed: ${r.reason} → falling back to bundled default`);
+  let ttAvatarFile: string | undefined;
+  if (!productMode) {
+    const findBundledAvatar = (): string => {
+      const baseDir = join(__dirname, "..", "assets");
+      for (const ext of ["jpg", "jpeg", "png", "webp"]) {
+        const p = join(baseDir, `avatar.${ext}`);
+        if (existsSync(p)) return p;
+      }
+      throw new Error(`No bundled avatar found. Place an image at assets/avatar.{jpg,png,webp}`);
+    };
+    const bundledAvatar = findBundledAvatar();
+    const ttAvatarExt = bundledAvatar.split(".").pop()!.toLowerCase();
+    ttAvatarFile = `tiktok-avatar.${ttAvatarExt}`;
+    const ttAvatarOut = join(outputDir, ttAvatarFile);
+    if (cfg.tiktok.avatarUrl) {
+      const r = await fetchImage(cfg.tiktok.avatarUrl, ttAvatarOut);
+      if (!r.success) {
+        log.warn(`TikTok avatar download failed: ${r.reason} -> falling back to bundled default`);
+        await copyFile(bundledAvatar, ttAvatarOut);
+      }
+    } else {
       await copyFile(bundledAvatar, ttAvatarOut);
     }
-  } else {
-    await copyFile(bundledAvatar, ttAvatarOut);
   }
 
+  const outroHoldSec = productMode ? 1 : 3;
   const html = composeHtml({
     script,
     sceneAudio: sceneAudio.map((a) => ({ id: a.id, durationSec: a.durationSec })),
     gapSec: SCENE_GAP_SEC,
     bgImageRelPath,
     audioRelPath: "voice.mp3",
+    sceneMediaRelPaths,
+    productMode,
     tiktok: cfg.tiktok,
     tiktokAvatarRelPath: ttAvatarFile,
-    outroHoldSec: OUTRO_HOLD_SEC,
+    outroHoldSec,
   });
 
-  // hyperframes expects: index.html (NOT composition.html), hyperframes.json, meta.json in DIR
   await writeFile(join(outputDir, "index.html"), html);
-
   await writeFile(join(outputDir, "hyperframes.json"), JSON.stringify(HYPERFRAMES_CONFIG, null, 2));
 
   const slug = basename(outputDir);
@@ -230,23 +211,69 @@ export async function runPipeline(scriptPath: string): Promise<void> {
     createdAt: new Date().toISOString(),
   }, null, 2));
 
-  // Copy templates next to the index.html so relative paths resolve.
-  // base.html.tmpl + animations.js are shared across themes (structure/behavior);
-  // only styles.<theme>.css differs (visual look), and always lands as "styles.css".
-  const themeFile = cfg.videoTheme === "light-pro" ? "styles.light-pro.css" : "styles.css";
-  await copyFile(join(TPL_DIR, themeFile),       join(outputDir, "styles.css"));
-  await copyFile(join(TPL_DIR, "animations.js"), join(outputDir, "animations.js"));
+  const themeFile = productMode
+    ? "styles.product.css"
+    : cfg.videoTheme === "light-pro"
+      ? "styles.light-pro.css"
+      : "styles.css";
+  const animationFile = productMode ? "animations.product.js" : "animations.js";
+  await copyFile(join(TPL_DIR, themeFile), join(outputDir, "styles.css"));
+  await copyFile(join(TPL_DIR, animationFile), join(outputDir, "animations.js"));
 
-  // STEP 7
   log.step(7, TOTAL_STEPS, "Render with hyperframes");
   const videoPath = join(outputDir, "video.mp4");
   await renderWithHyperframes({ compositionDir: outputDir, outputPath: videoPath });
 
-  // STEP 8
   log.step(8, TOTAL_STEPS, "Done");
   console.log("\n=== Result ===");
   console.log(`Video:  ${videoPath}`);
-  console.log(`Audio:  ${voiceMp3}  (cho CapCut)`);
-  console.log(`Script: ${join(outputDir, "script.txt")}  (cho CapCut auto-caption)`);
+  console.log(`Audio:  ${voiceMp3}`);
+  console.log(`Script: ${join(outputDir, "script.txt")}`);
   console.log(`Tong thoi luong: ${totalAudioSec.toFixed(2)}s`);
+}
+
+async function prepareSceneMedia(
+  script: Script,
+  scriptPath: string,
+  outputDir: string,
+): Promise<Record<string, string>> {
+  const result: Record<string, string> = {};
+  const mediaDir = join(outputDir, "media");
+  let createdMediaDir = false;
+
+  for (const scene of script.scenes) {
+    const td = scene.templateData;
+    if (td.template !== "screen-demo") continue;
+
+    const candidates = isAbsolute(td.src)
+      ? [td.src]
+      : [resolve(dirname(scriptPath), td.src), resolve(process.cwd(), td.src)];
+    const sourcePath = candidates.find((p) => existsSync(p));
+    if (!sourcePath) {
+      throw new Error(`screen-demo media not found for scene "${scene.id}": ${td.src}`);
+    }
+
+    const ext = extname(sourcePath).toLowerCase();
+    const allowed = td.mediaType === "video"
+      ? new Set([".mp4", ".webm"])
+      : new Set([".png", ".jpg", ".jpeg", ".webp"]);
+    if (!allowed.has(ext)) {
+      throw new Error(`Unsupported ${td.mediaType} file for scene "${scene.id}": ${ext || "no extension"}`);
+    }
+
+    if (!createdMediaDir) {
+      await mkdir(mediaDir, { recursive: true });
+      createdMediaDir = true;
+    }
+
+    const safeId = scene.id.replace(/[^a-zA-Z0-9_-]+/g, "-");
+    const fileName = `${safeId}${ext}`;
+    const destPath = join(mediaDir, fileName);
+    if (resolve(sourcePath) !== resolve(destPath)) {
+      await copyFile(sourcePath, destPath);
+    }
+    result[scene.id] = `media/${fileName}`;
+  }
+
+  return result;
 }
